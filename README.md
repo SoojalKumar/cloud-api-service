@@ -6,6 +6,7 @@ Cloud-Based API Service is a production-style FastAPI backend scaffold designed 
 
 - FastAPI application bootstrap
 - Health check endpoint
+- Centralized runtime settings
 - Clean package layout for routes, services, and models
 
 ## Run The Server
@@ -31,5 +32,20 @@ http://127.0.0.1:8000/health
 Expected response:
 
 ```json
-{"status": "ok"}
+{
+  "status": "ok",
+  "service": "Cloud-Based API Service",
+  "version": "0.1.0",
+  "environment": "development"
+}
+```
+
+## Environment Variables
+
+You can customize the app metadata without changing code:
+
+```bash
+export APP_NAME="Cloud-Based API Service"
+export APP_VERSION="0.1.0"
+export APP_ENV="development"
 ```

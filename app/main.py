@@ -2,12 +2,13 @@
 
 from fastapi import FastAPI
 
+from app.config import settings
 from app.routes.health import router as health_router
 
 
 app = FastAPI(
-    title="Cloud-Based API Service",
-    version="0.1.0",
+    title=settings.app_name,
+    version=settings.app_version,
     description="A clean FastAPI foundation for a cloud-oriented backend service.",
 )
 
