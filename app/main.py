@@ -3,7 +3,7 @@
 from fastapi import FastAPI
 
 from app.config import settings
-from app.routes.health import router as health_router
+from app.routes.system import router as system_router
 
 
 app = FastAPI(
@@ -12,4 +12,4 @@ app = FastAPI(
     description="A clean FastAPI foundation for a cloud-oriented backend service.",
 )
 
-app.include_router(health_router)
+app.include_router(system_router)

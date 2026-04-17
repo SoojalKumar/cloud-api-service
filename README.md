@@ -1,11 +1,13 @@
 # Cloud-Based API Service
 
-Cloud-Based API Service is a production-style FastAPI backend scaffold designed to grow into a larger cloud application over time. The project starts with a clean service-oriented layout and a health endpoint, with future features intended to be added through small, meaningful commits.
+Cloud-Based API Service is a production-style FastAPI backend scaffold designed to grow into a larger cloud application over time. The project is being built incrementally with small, meaningful commits so the architecture stays clean as the service expands.
 
 ## Current Scope
 
 - FastAPI application bootstrap
-- Health check endpoint
+- Versioned API routes under `/api/v1`
+- Typed response models using Pydantic
+- Health and service metadata endpoints
 - Centralized runtime settings
 - Clean package layout for routes, services, and models
 
@@ -23,13 +25,21 @@ Start the development server:
 uvicorn app.main:app --reload
 ```
 
-Open:
+## Available Endpoints
+
+Health check:
 
 ```text
-http://127.0.0.1:8000/health
+GET http://127.0.0.1:8000/api/v1/health
 ```
 
-Expected response:
+Service info:
+
+```text
+GET http://127.0.0.1:8000/api/v1/info
+```
+
+Example health response:
 
 ```json
 {
@@ -37,6 +47,17 @@ Expected response:
   "service": "Cloud-Based API Service",
   "version": "0.1.0",
   "environment": "development"
+}
+```
+
+Example service info response:
+
+```json
+{
+  "name": "Cloud-Based API Service",
+  "version": "0.1.0",
+  "environment": "development",
+  "docs_url": "/docs"
 }
 ```
 
