@@ -94,7 +94,13 @@ Current coverage includes:
 
 ## Environment Variables
 
-You can customize the app metadata without changing code:
+You can customize the app metadata without changing code. Start by copying the example file:
+
+```bash
+cp .env.example .env
+```
+
+Then export values in your shell or load them through your deployment platform:
 
 ```bash
 export APP_NAME="Cloud-Based API Service"
