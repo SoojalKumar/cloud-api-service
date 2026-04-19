@@ -61,6 +61,19 @@ Example service info response:
 }
 ```
 
+## Run Tests
+
+Run the automated endpoint tests:
+
+```bash
+pytest
+```
+
+Current coverage includes:
+
+- `GET /api/v1/health`
+- `GET /api/v1/info`
+
 ## Environment Variables
 
 You can customize the app metadata without changing code:
