@@ -8,6 +8,8 @@ Cloud-Based API Service is a production-style FastAPI backend scaffold designed 
 - Versioned API routes under `/api/v1`
 - Typed response models using Pydantic
 - Health and service metadata endpoints
+- Request ID middleware for traceability
+- Consistent JSON error responses
 - Centralized runtime settings
 - Clean package layout for routes, services, and models
 
@@ -61,6 +63,20 @@ Example service info response:
 }
 ```
 
+## Error Responses
+
+All API errors use a consistent JSON response shape and include a request ID when available:
+
+```json
+{
+  "error": "not_found",
+  "message": "Not Found",
+  "request_id": "test-request-1"
+}
+```
+
+Clients can send `X-Request-ID`; otherwise the API generates one and returns it in the response headers.
+
 ## Run Tests
 
 Run the automated endpoint tests:
@@ -73,6 +89,8 @@ Current coverage includes:
 
 - `GET /api/v1/health`
 - `GET /api/v1/info`
+- standardized 404 error responses
+- request ID response headers
 
 ## Environment Variables
 
