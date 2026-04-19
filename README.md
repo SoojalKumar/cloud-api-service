@@ -107,3 +107,7 @@ export APP_NAME="Cloud-Based API Service"
 export APP_VERSION="0.1.0"
 export APP_ENV="development"
 ```
+
+## Development Notes
+
+See [docs/development.md](docs/development.md) for local workflow, commit guidelines, and current development priorities.
