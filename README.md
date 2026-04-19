@@ -29,6 +29,12 @@ uvicorn app.main:app --reload
 
 ## Available Endpoints
 
+Root service metadata:
+
+```text
+GET http://127.0.0.1:8000/
+```
+
 Health check:
 
 ```text
@@ -88,6 +94,7 @@ pytest
 Current coverage includes:
 
 - `GET /api/v1/health`
+- `GET /`
 - `GET /api/v1/info`
 - standardized 404 error responses
 - request ID response headers
