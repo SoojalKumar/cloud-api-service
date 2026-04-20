@@ -8,9 +8,12 @@ Cloud-Based API Service is a production-style FastAPI backend scaffold designed 
 - Versioned API routes under `/api/v1`
 - Typed response models using Pydantic
 - Health and service metadata endpoints
+- Task CRUD resource with status filtering and summary metrics
 - Request ID middleware for traceability
 - Consistent JSON error responses
-- Centralized runtime settings
+- Centralized runtime settings with configurable CORS origins
+- GitHub Actions test workflow
+- Docker-ready runtime setup
 - Clean package layout for routes, services, and models
 
 ## Run The Server
@@ -25,6 +28,12 @@ Start the development server:
 
 ```bash
 uvicorn app.main:app --reload
+```
+
+Open the interactive API docs:
+
+```text
+http://127.0.0.1:8000/docs
 ```
 
 ## Available Endpoints
@@ -47,6 +56,18 @@ Service info:
 GET http://127.0.0.1:8000/api/v1/info
 ```
 
+Task resource:
+
+```text
+POST   http://127.0.0.1:8000/api/v1/tasks
+GET    http://127.0.0.1:8000/api/v1/tasks
+GET    http://127.0.0.1:8000/api/v1/tasks?status=in_progress
+GET    http://127.0.0.1:8000/api/v1/tasks/summary
+GET    http://127.0.0.1:8000/api/v1/tasks/{task_id}
+PATCH  http://127.0.0.1:8000/api/v1/tasks/{task_id}
+DELETE http://127.0.0.1:8000/api/v1/tasks/{task_id}
+```
+
 Example health response:
 
 ```json
@@ -58,14 +79,22 @@ Example health response:
 }
 ```
 
-Example service info response:
+Example task creation:
+
+```bash
+curl -X POST http://127.0.0.1:8000/api/v1/tasks \
+  -H "Content-Type: application/json" \
+  -d '{"title":"Prepare deployment plan","description":"Document next production steps."}'
+```
+
+Example task summary response:
 
 ```json
 {
-  "name": "Cloud-Based API Service",
-  "version": "0.1.0",
-  "environment": "development",
-  "docs_url": "/docs"
+  "total": 3,
+  "todo": 1,
+  "in_progress": 1,
+  "done": 1
 }
 ```
 
@@ -88,7 +117,7 @@ Clients can send `X-Request-ID`; otherwise the API generates one and returns it 
 Run the automated endpoint tests:
 
 ```bash
-pytest
+python -m pytest
 ```
 
 Current coverage includes:
@@ -96,12 +125,14 @@ Current coverage includes:
 - `GET /api/v1/health`
 - `GET /`
 - `GET /api/v1/info`
-- standardized 404 error responses
+- task create/list/filter/summary/update/delete behavior
+- standardized 404 and validation error responses
 - request ID response headers
+- environment parsing for deploy-time settings
 
 ## Environment Variables
 
-You can customize the app metadata without changing code. Start by copying the example file:
+You can customize app metadata and CORS behavior without changing code. Start by copying the example file:
 
 ```bash
 cp .env.example .env
@@ -113,6 +144,7 @@ Then export values in your shell or load them through your deployment platform:
 export APP_NAME="Cloud-Based API Service"
 export APP_VERSION="0.1.0"
 export APP_ENV="development"
+export CORS_ALLOWED_ORIGINS="http://localhost:3000,https://example.com"
 ```
 
 ## Docker
