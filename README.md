@@ -115,6 +115,10 @@ export APP_VERSION="0.1.0"
 export APP_ENV="development"
 ```
 
+## Automated Checks
+
+GitHub Actions runs the pytest suite on every push and pull request to `main`, helping keep new API changes safe as the service grows.
+
 ## Development Notes
 
 See [docs/development.md](docs/development.md) for local workflow, commit guidelines, and current development priorities.
