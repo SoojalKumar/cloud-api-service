@@ -36,3 +36,12 @@ class TaskResponse(BaseModel):
     title: str
     description: Optional[str]
     status: TaskStatus
+
+
+class TaskSummaryResponse(BaseModel):
+    """Aggregated task counts for dashboard-style clients."""
+
+    total: int
+    todo: int
+    in_progress: int
+    done: int

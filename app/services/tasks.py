@@ -1,9 +1,16 @@
 """In-memory task service used by the first API resource."""
 
+from typing import Optional
 from uuid import uuid4
 
 from app.errors import ResourceNotFoundError
-from app.models.tasks import TaskCreate, TaskResponse, TaskStatus, TaskUpdate
+from app.models.tasks import (
+    TaskCreate,
+    TaskResponse,
+    TaskStatus,
+    TaskSummaryResponse,
+    TaskUpdate,
+)
 
 
 class TaskService:
@@ -26,8 +33,20 @@ class TaskService:
         self._tasks[task.id] = task
         return task
 
-    def list_tasks(self) -> list[TaskResponse]:
-        return list(self._tasks.values())
+    def list_tasks(self, status: Optional[TaskStatus] = None) -> list[TaskResponse]:
+        tasks = list(self._tasks.values())
+        if status is None:
+            return tasks
+        return [task for task in tasks if task.status == status]
+
+    def get_summary(self) -> TaskSummaryResponse:
+        tasks = self.list_tasks()
+        return TaskSummaryResponse(
+            total=len(tasks),
+            todo=sum(task.status == TaskStatus.TODO for task in tasks),
+            in_progress=sum(task.status == TaskStatus.IN_PROGRESS for task in tasks),
+            done=sum(task.status == TaskStatus.DONE for task in tasks),
+        )
 
     def get_task(self, task_id: str) -> TaskResponse:
         try:

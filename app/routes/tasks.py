@@ -1,8 +1,10 @@
 """Task resource routes."""
 
-from fastapi import APIRouter, Response, status
+from typing import Optional
 
-from app.models.tasks import TaskCreate, TaskResponse, TaskUpdate
+from fastapi import APIRouter, Query, Response, status
+
+from app.models.tasks import TaskCreate, TaskResponse, TaskStatus, TaskSummaryResponse, TaskUpdate
 from app.services.tasks import task_service
 
 
@@ -17,10 +19,19 @@ def create_task(payload: TaskCreate) -> TaskResponse:
 
 
 @router.get("", response_model=list[TaskResponse])
-def list_tasks() -> list[TaskResponse]:
-    """Return all tracked tasks in insertion order."""
+def list_tasks(
+    status: Optional[TaskStatus] = Query(default=None, description="Filter tasks by status."),
+) -> list[TaskResponse]:
+    """Return tracked tasks, optionally filtered by status."""
 
-    return task_service.list_tasks()
+    return task_service.list_tasks(status=status)
+
+
+@router.get("/summary", response_model=TaskSummaryResponse)
+def get_task_summary() -> TaskSummaryResponse:
+    """Return aggregate task counts for lightweight dashboards."""
+
+    return task_service.get_summary()
 
 
 @router.get("/{task_id}", response_model=TaskResponse)

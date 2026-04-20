@@ -62,6 +62,29 @@ def test_get_update_and_delete_task() -> None:
     assert missing_response.json()["error"] == "not_found"
 
 
+def test_filter_tasks_by_status_and_get_summary() -> None:
+    first_task = client.post("/api/v1/tasks", json={"title": "Backlog item"}).json()
+    second_task = client.post("/api/v1/tasks", json={"title": "Active item"}).json()
+    third_task = client.post("/api/v1/tasks", json={"title": "Finished item"}).json()
+
+    client.patch(f"/api/v1/tasks/{second_task['id']}", json={"status": "in_progress"})
+    client.patch(f"/api/v1/tasks/{third_task['id']}", json={"status": "done"})
+
+    filtered_response = client.get("/api/v1/tasks", params={"status": "in_progress"})
+    summary_response = client.get("/api/v1/tasks/summary")
+
+    assert filtered_response.status_code == 200
+    assert [task["id"] for task in filtered_response.json()] == [second_task["id"]]
+    assert summary_response.status_code == 200
+    assert summary_response.json() == {
+        "total": 3,
+        "todo": 1,
+        "in_progress": 1,
+        "done": 1,
+    }
+
+
+
 def test_task_validation_rejects_blank_title() -> None:
     response = client.post("/api/v1/tasks", json={"title": ""})
 
