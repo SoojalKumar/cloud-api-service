@@ -14,6 +14,7 @@ from app.errors import (
 from app.middleware.request_id import RequestIdMiddleware
 from app.routes.root import router as root_router
 from app.routes.system import router as system_router
+from app.routes.tasks import router as tasks_router
 
 
 app = FastAPI(
@@ -28,3 +29,4 @@ app.add_exception_handler(StarletteHTTPException, http_error_handler)
 app.add_exception_handler(RequestValidationError, validation_error_handler)
 app.include_router(root_router)
 app.include_router(system_router)
+app.include_router(tasks_router)
