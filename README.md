@@ -115,6 +115,21 @@ export APP_VERSION="0.1.0"
 export APP_ENV="development"
 ```
 
+## Docker
+
+Build and run the API in a container:
+
+```bash
+docker build -t cloud-api-service .
+docker run -p 8000:8000 cloud-api-service
+```
+
+Then verify the service:
+
+```bash
+curl http://127.0.0.1:8000/api/v1/health
+```
+
 ## Automated Checks
 
 GitHub Actions runs the pytest suite on every push and pull request to `main`, helping keep new API changes safe as the service grows.
