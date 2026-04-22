@@ -36,7 +36,7 @@ class SQLiteTaskRepository:
                 """
                 SELECT id, title, description, status
                 FROM tasks
-                ORDER BY created_at, id
+                ORDER BY rowid
                 LIMIT ? OFFSET ?
                 """,
                 (limit, offset),
@@ -47,7 +47,7 @@ class SQLiteTaskRepository:
                 SELECT id, title, description, status
                 FROM tasks
                 WHERE status = ?
-                ORDER BY created_at, id
+                ORDER BY rowid
                 LIMIT ? OFFSET ?
                 """,
                 (status.value, limit, offset),

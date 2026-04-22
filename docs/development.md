@@ -31,8 +31,8 @@ python -m pytest
 
 ## Current Development Priorities
 
-- Replace the in-memory task store with a persistent database layer.
 - Add authentication and role-aware access control.
+- Introduce database migrations if the schema grows beyond the current SQLite foundation.
 - Add structured logging for production observability.
 - Keep expanding test coverage as the API grows.
 
@@ -42,3 +42,7 @@ python -m pytest
 - List endpoints should support safe pagination defaults.
 - Public responses should preserve request IDs and security headers.
 - README examples should be updated when API behavior changes.
+
+## Persistence Notes
+
+The task API now uses a SQLite repository so local task data can survive application restarts. Keep generated database files out of git and use `DATABASE_PATH` when testing alternate storage locations.

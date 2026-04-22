@@ -8,11 +8,11 @@ Cloud-Based API Service is a production-style FastAPI backend scaffold designed 
 - Versioned API routes under `/api/v1`
 - Typed response models using Pydantic
 - Health and service metadata endpoints
-- Task CRUD resource with status filtering, pagination, and summary metrics
+- Task CRUD resource with SQLite persistence, status filtering, pagination, and summary metrics
 - Request ID middleware for traceability
 - Baseline security headers on API responses
 - Consistent JSON error responses
-- Centralized runtime settings with configurable CORS origins
+- Centralized runtime settings with configurable CORS origins and database path
 - GitHub Actions test workflow
 - Docker-ready runtime setup
 - Clean package layout for routes, services, and models
@@ -99,6 +99,10 @@ Example task summary response:
 }
 ```
 
+## Persistence
+
+Tasks are stored in SQLite through a repository layer. By default, the API uses `cloud_api_service.db` in the project root. For deployments or tests, set `DATABASE_PATH` to point at a different SQLite database file.
+
 ## Error Responses
 
 All API errors use a consistent JSON response shape and include a request ID when available:
@@ -126,6 +130,7 @@ Current coverage includes:
 - `GET /api/v1/health`
 - `GET /`
 - `GET /api/v1/info`
+- SQLite task repository persistence and task service behavior
 - task create/list/filter/paginate/summary/update/delete behavior
 - standardized 404 and validation error responses
 - request ID and security response headers
@@ -145,6 +150,7 @@ Then export values in your shell or load them through your deployment platform:
 export APP_NAME="Cloud-Based API Service"
 export APP_VERSION="0.1.0"
 export APP_ENV="development"
+export DATABASE_PATH="cloud_api_service.db"
 export CORS_ALLOWED_ORIGINS="http://localhost:3000,https://example.com"
 ```
 
