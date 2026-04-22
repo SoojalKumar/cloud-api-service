@@ -85,6 +85,28 @@ def test_filter_tasks_by_status_and_get_summary() -> None:
 
 
 
+def test_list_tasks_supports_pagination() -> None:
+    created_tasks = [
+        client.post("/api/v1/tasks", json={"title": f"Task {index}"}).json()
+        for index in range(4)
+    ]
+
+    response = client.get("/api/v1/tasks", params={"offset": 1, "limit": 2})
+
+    assert response.status_code == 200
+    assert [task["id"] for task in response.json()] == [
+        created_tasks[1]["id"],
+        created_tasks[2]["id"],
+    ]
+
+
+def test_list_tasks_rejects_invalid_pagination() -> None:
+    response = client.get("/api/v1/tasks", params={"offset": -1, "limit": 101})
+
+    assert response.status_code == 422
+    assert response.json()["error"] == "validation_error"
+
+
 def test_task_validation_rejects_blank_title() -> None:
     response = client.post("/api/v1/tasks", json={"title": ""})
 

@@ -4,7 +4,13 @@ from typing import Optional
 
 from fastapi import APIRouter, Query, Response, status
 
-from app.models.tasks import TaskCreate, TaskResponse, TaskStatus, TaskSummaryResponse, TaskUpdate
+from app.models.tasks import (
+    TaskCreate,
+    TaskResponse,
+    TaskStatus,
+    TaskSummaryResponse,
+    TaskUpdate,
+)
 from app.services.tasks import task_service
 
 
@@ -21,10 +27,12 @@ def create_task(payload: TaskCreate) -> TaskResponse:
 @router.get("", response_model=list[TaskResponse])
 def list_tasks(
     status: Optional[TaskStatus] = Query(default=None, description="Filter tasks by status."),
+    offset: int = Query(default=0, ge=0, description="Number of tasks to skip."),
+    limit: int = Query(default=50, ge=1, le=100, description="Maximum tasks to return."),
 ) -> list[TaskResponse]:
-    """Return tracked tasks, optionally filtered by status."""
+    """Return tracked tasks with optional status filtering and pagination."""
 
-    return task_service.list_tasks(status=status)
+    return task_service.list_tasks(status=status, offset=offset, limit=limit)
 
 
 @router.get("/summary", response_model=TaskSummaryResponse)

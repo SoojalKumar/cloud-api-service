@@ -33,11 +33,16 @@ class TaskService:
         self._tasks[task.id] = task
         return task
 
-    def list_tasks(self, status: Optional[TaskStatus] = None) -> list[TaskResponse]:
+    def list_tasks(
+        self,
+        status: Optional[TaskStatus] = None,
+        offset: int = 0,
+        limit: int = 50,
+    ) -> list[TaskResponse]:
         tasks = list(self._tasks.values())
-        if status is None:
-            return tasks
-        return [task for task in tasks if task.status == status]
+        if status is not None:
+            tasks = [task for task in tasks if task.status == status]
+        return tasks[offset : offset + limit]
 
     def get_summary(self) -> TaskSummaryResponse:
         tasks = self.list_tasks()
