@@ -1,8 +1,9 @@
-"""In-memory task service used by the first API resource."""
+"""Task service used by the first API resource."""
 
 from typing import Optional
 from uuid import uuid4
 
+from app.config import settings
 from app.errors import ResourceNotFoundError
 from app.models.tasks import (
     TaskCreate,
@@ -11,17 +12,14 @@ from app.models.tasks import (
     TaskSummaryResponse,
     TaskUpdate,
 )
+from app.repositories.tasks import SQLiteTaskRepository
 
 
 class TaskService:
-    """Manage tasks with a simple in-memory store.
+    """Coordinate task business rules with the persistence layer."""
 
-    This intentionally starts in memory so the API contract can evolve before a
-    database layer is introduced in a later milestone.
-    """
-
-    def __init__(self) -> None:
-        self._tasks: dict[str, TaskResponse] = {}
+    def __init__(self, repository: Optional[SQLiteTaskRepository] = None) -> None:
+        self._repository = repository or SQLiteTaskRepository(settings.database_path)
 
     def create_task(self, payload: TaskCreate) -> TaskResponse:
         task = TaskResponse(
@@ -30,8 +28,7 @@ class TaskService:
             description=payload.description,
             status=TaskStatus.TODO,
         )
-        self._tasks[task.id] = task
-        return task
+        return self._repository.create(task)
 
     def list_tasks(
         self,
@@ -39,13 +36,10 @@ class TaskService:
         offset: int = 0,
         limit: int = 50,
     ) -> list[TaskResponse]:
-        tasks = list(self._tasks.values())
-        if status is not None:
-            tasks = [task for task in tasks if task.status == status]
-        return tasks[offset : offset + limit]
+        return self._repository.list(status=status, offset=offset, limit=limit)
 
     def get_summary(self) -> TaskSummaryResponse:
-        tasks = self.list_tasks()
+        tasks = self._repository.list(offset=0, limit=1000)
         return TaskSummaryResponse(
             total=len(tasks),
             todo=sum(task.status == TaskStatus.TODO for task in tasks),
@@ -54,25 +48,24 @@ class TaskService:
         )
 
     def get_task(self, task_id: str) -> TaskResponse:
-        try:
-            return self._tasks[task_id]
-        except KeyError as error:
-            raise ResourceNotFoundError(f"Task '{task_id}' was not found.") from error
+        task = self._repository.get(task_id)
+        if task is None:
+            raise ResourceNotFoundError(f"Task '{task_id}' was not found.")
+        return task
 
     def update_task(self, task_id: str, payload: TaskUpdate) -> TaskResponse:
         existing = self.get_task(task_id)
         updated = existing.model_copy(update=payload.model_dump(exclude_unset=True))
-        self._tasks[task_id] = updated
-        return updated
+        return self._repository.update(updated)
 
     def delete_task(self, task_id: str) -> None:
         self.get_task(task_id)
-        del self._tasks[task_id]
+        self._repository.delete(task_id)
 
     def clear(self) -> None:
         """Reset service state for tests."""
 
-        self._tasks.clear()
+        self._repository.clear()
 
 
 task_service = TaskService()
