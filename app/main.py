@@ -13,6 +13,7 @@ from app.errors import (
     validation_error_handler,
 )
 from app.middleware.request_id import RequestIdMiddleware
+from app.middleware.security_headers import SecurityHeadersMiddleware
 from app.routes.root import router as root_router
 from app.routes.system import router as system_router
 from app.routes.tasks import router as tasks_router
@@ -31,6 +32,7 @@ app.add_middleware(
     allow_methods=["*"],
     allow_headers=["*"],
 )
+app.add_middleware(SecurityHeadersMiddleware)
 app.add_middleware(RequestIdMiddleware)
 app.add_exception_handler(AppError, app_error_handler)
 app.add_exception_handler(StarletteHTTPException, http_error_handler)

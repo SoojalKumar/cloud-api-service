@@ -27,3 +27,13 @@ def test_request_id_is_generated_when_missing() -> None:
     assert response.status_code == 200
     assert REQUEST_ID_HEADER in response.headers
     assert response.headers[REQUEST_ID_HEADER]
+
+def test_security_headers_are_added_to_responses() -> None:
+    response = client.get("/api/v1/info")
+
+    assert response.status_code == 200
+    assert response.headers["X-Content-Type-Options"] == "nosniff"
+    assert response.headers["X-Frame-Options"] == "DENY"
+    assert response.headers["Referrer-Policy"] == "no-referrer"
+    assert response.headers["Permissions-Policy"] == "geolocation=(), microphone=(), camera=()"
+
