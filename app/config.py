@@ -18,6 +18,7 @@ class Settings:
     app_name: str = os.getenv("APP_NAME", "Cloud-Based API Service")
     app_version: str = os.getenv("APP_VERSION", "0.1.0")
     environment: str = os.getenv("APP_ENV", "development")
+    database_path: str = os.getenv("DATABASE_PATH", "cloud_api_service.db")
     cors_allowed_origins: list[str] = field(
         default_factory=lambda: _csv_env("CORS_ALLOWED_ORIGINS", "http://localhost:3000")
     )
