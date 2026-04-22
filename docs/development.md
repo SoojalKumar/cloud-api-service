@@ -19,7 +19,7 @@ uvicorn app.main:app --reload
 Run tests:
 
 ```bash
-pytest
+python -m pytest
 ```
 
 ## Commit Guidelines
@@ -31,6 +31,14 @@ pytest
 
 ## Current Development Priorities
 
-- Add the first real business resource and CRUD endpoints.
-- Strengthen environment-based configuration.
+- Replace the in-memory task store with a persistent database layer.
+- Add authentication and role-aware access control.
+- Add structured logging for production observability.
 - Keep expanding test coverage as the API grows.
+
+## API Quality Checklist
+
+- New endpoints should include request and response models.
+- List endpoints should support safe pagination defaults.
+- Public responses should preserve request IDs and security headers.
+- README examples should be updated when API behavior changes.

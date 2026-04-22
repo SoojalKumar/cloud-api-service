@@ -8,8 +8,9 @@ Cloud-Based API Service is a production-style FastAPI backend scaffold designed 
 - Versioned API routes under `/api/v1`
 - Typed response models using Pydantic
 - Health and service metadata endpoints
-- Task CRUD resource with status filtering and summary metrics
+- Task CRUD resource with status filtering, pagination, and summary metrics
 - Request ID middleware for traceability
+- Baseline security headers on API responses
 - Consistent JSON error responses
 - Centralized runtime settings with configurable CORS origins
 - GitHub Actions test workflow
@@ -61,7 +62,7 @@ Task resource:
 ```text
 POST   http://127.0.0.1:8000/api/v1/tasks
 GET    http://127.0.0.1:8000/api/v1/tasks
-GET    http://127.0.0.1:8000/api/v1/tasks?status=in_progress
+GET    http://127.0.0.1:8000/api/v1/tasks?status=in_progress&offset=0&limit=25
 GET    http://127.0.0.1:8000/api/v1/tasks/summary
 GET    http://127.0.0.1:8000/api/v1/tasks/{task_id}
 PATCH  http://127.0.0.1:8000/api/v1/tasks/{task_id}
@@ -110,7 +111,7 @@ All API errors use a consistent JSON response shape and include a request ID whe
 }
 ```
 
-Clients can send `X-Request-ID`; otherwise the API generates one and returns it in the response headers.
+Clients can send `X-Request-ID`; otherwise the API generates one and returns it in the response headers. Responses also include baseline browser security headers such as `X-Content-Type-Options`, `X-Frame-Options`, `Referrer-Policy`, and `Permissions-Policy`.
 
 ## Run Tests
 
@@ -125,9 +126,9 @@ Current coverage includes:
 - `GET /api/v1/health`
 - `GET /`
 - `GET /api/v1/info`
-- task create/list/filter/summary/update/delete behavior
+- task create/list/filter/paginate/summary/update/delete behavior
 - standardized 404 and validation error responses
-- request ID response headers
+- request ID and security response headers
 - environment parsing for deploy-time settings
 
 ## Environment Variables
