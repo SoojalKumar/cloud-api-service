@@ -2,7 +2,7 @@
 
 from typing import Optional
 
-from fastapi import APIRouter, Query, Response, status
+from fastapi import APIRouter, Depends, Query, Response, status
 
 from app.models.tasks import (
     TaskCreate,
@@ -11,13 +11,19 @@ from app.models.tasks import (
     TaskSummaryResponse,
     TaskUpdate,
 )
+from app.security import require_api_key
 from app.services.tasks import task_service
 
 
 router = APIRouter(prefix="/api/v1/tasks", tags=["tasks"])
 
 
-@router.post("", response_model=TaskResponse, status_code=status.HTTP_201_CREATED)
+@router.post(
+    "",
+    response_model=TaskResponse,
+    status_code=status.HTTP_201_CREATED,
+    dependencies=[Depends(require_api_key)],
+)
 def create_task(payload: TaskCreate) -> TaskResponse:
     """Create a task that can be tracked by API clients."""
 
@@ -49,14 +55,22 @@ def get_task(task_id: str) -> TaskResponse:
     return task_service.get_task(task_id)
 
 
-@router.patch("/{task_id}", response_model=TaskResponse)
+@router.patch(
+    "/{task_id}",
+    response_model=TaskResponse,
+    dependencies=[Depends(require_api_key)],
+)
 def update_task(task_id: str, payload: TaskUpdate) -> TaskResponse:
     """Update task fields without replacing the full resource."""
 
     return task_service.update_task(task_id, payload)
 
 
-@router.delete("/{task_id}", status_code=status.HTTP_204_NO_CONTENT)
+@router.delete(
+    "/{task_id}",
+    status_code=status.HTTP_204_NO_CONTENT,
+    dependencies=[Depends(require_api_key)],
+)
 def delete_task(task_id: str) -> Response:
     """Delete a task after confirming it exists."""
 

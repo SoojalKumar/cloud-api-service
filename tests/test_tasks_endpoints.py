@@ -2,11 +2,14 @@
 
 from fastapi.testclient import TestClient
 
+from app.config import settings
 from app.main import app
+from app.security import API_KEY_HEADER
 from app.services.tasks import task_service
 
 
 client = TestClient(app)
+auth_headers = {API_KEY_HEADER: settings.api_key}
 
 
 def setup_function() -> None:
@@ -20,6 +23,7 @@ def teardown_function() -> None:
 def test_create_and_list_tasks() -> None:
     create_response = client.post(
         "/api/v1/tasks",
+        headers=auth_headers,
         json={"title": "Ship API milestone", "description": "Add the first resource."},
     )
 
@@ -39,6 +43,7 @@ def test_create_and_list_tasks() -> None:
 def test_get_update_and_delete_task() -> None:
     created_task = client.post(
         "/api/v1/tasks",
+        headers=auth_headers,
         json={"title": "Write tests"},
     ).json()
 
@@ -48,13 +53,17 @@ def test_get_update_and_delete_task() -> None:
 
     update_response = client.patch(
         f"/api/v1/tasks/{created_task['id']}",
+        headers=auth_headers,
         json={"status": "in_progress", "description": "Cover CRUD behavior."},
     )
     assert update_response.status_code == 200
     assert update_response.json()["status"] == "in_progress"
     assert update_response.json()["description"] == "Cover CRUD behavior."
 
-    delete_response = client.delete(f"/api/v1/tasks/{created_task['id']}")
+    delete_response = client.delete(
+        f"/api/v1/tasks/{created_task['id']}",
+        headers=auth_headers,
+    )
     assert delete_response.status_code == 204
 
     missing_response = client.get(f"/api/v1/tasks/{created_task['id']}")
@@ -63,12 +72,32 @@ def test_get_update_and_delete_task() -> None:
 
 
 def test_filter_tasks_by_status_and_get_summary() -> None:
-    first_task = client.post("/api/v1/tasks", json={"title": "Backlog item"}).json()
-    second_task = client.post("/api/v1/tasks", json={"title": "Active item"}).json()
-    third_task = client.post("/api/v1/tasks", json={"title": "Finished item"}).json()
+    first_task = client.post(
+        "/api/v1/tasks",
+        headers=auth_headers,
+        json={"title": "Backlog item"},
+    ).json()
+    second_task = client.post(
+        "/api/v1/tasks",
+        headers=auth_headers,
+        json={"title": "Active item"},
+    ).json()
+    third_task = client.post(
+        "/api/v1/tasks",
+        headers=auth_headers,
+        json={"title": "Finished item"},
+    ).json()
 
-    client.patch(f"/api/v1/tasks/{second_task['id']}", json={"status": "in_progress"})
-    client.patch(f"/api/v1/tasks/{third_task['id']}", json={"status": "done"})
+    client.patch(
+        f"/api/v1/tasks/{second_task['id']}",
+        headers=auth_headers,
+        json={"status": "in_progress"},
+    )
+    client.patch(
+        f"/api/v1/tasks/{third_task['id']}",
+        headers=auth_headers,
+        json={"status": "done"},
+    )
 
     filtered_response = client.get("/api/v1/tasks", params={"status": "in_progress"})
     summary_response = client.get("/api/v1/tasks/summary")
@@ -84,10 +113,13 @@ def test_filter_tasks_by_status_and_get_summary() -> None:
     }
 
 
-
 def test_list_tasks_supports_pagination() -> None:
     created_tasks = [
-        client.post("/api/v1/tasks", json={"title": f"Task {index}"}).json()
+        client.post(
+            "/api/v1/tasks",
+            headers=auth_headers,
+            json={"title": f"Task {index}"},
+        ).json()
         for index in range(4)
     ]
 
@@ -108,7 +140,32 @@ def test_list_tasks_rejects_invalid_pagination() -> None:
 
 
 def test_task_validation_rejects_blank_title() -> None:
-    response = client.post("/api/v1/tasks", json={"title": ""})
+    response = client.post(
+        "/api/v1/tasks",
+        headers=auth_headers,
+        json={"title": ""},
+    )
 
     assert response.status_code == 422
     assert response.json()["error"] == "validation_error"
+
+
+def test_mutating_task_endpoints_require_api_key() -> None:
+    create_response = client.post("/api/v1/tasks", json={"title": "Protected"})
+
+    assert create_response.status_code == 401
+
+    created_task = client.post(
+        "/api/v1/tasks",
+        headers=auth_headers,
+        json={"title": "Authorized task"},
+    ).json()
+
+    update_response = client.patch(
+        f"/api/v1/tasks/{created_task['id']}",
+        json={"status": "done"},
+    )
+    delete_response = client.delete(f"/api/v1/tasks/{created_task['id']}")
+
+    assert update_response.status_code == 401
+    assert delete_response.status_code == 401
