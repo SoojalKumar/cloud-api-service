@@ -31,7 +31,7 @@ python -m pytest
 
 ## Current Development Priorities
 
-- Add authentication and role-aware access control.
+- Evolve the shared API key approach into role-aware authentication.
 - Introduce database migrations if the schema grows beyond the current SQLite foundation.
 - Add structured logging for production observability.
 - Keep expanding test coverage as the API grows.
@@ -46,3 +46,7 @@ python -m pytest
 ## Persistence Notes
 
 The task API now uses a SQLite repository so local task data can survive application restarts. Keep generated database files out of git and use `DATABASE_PATH` when testing alternate storage locations.
+
+## Authentication Notes
+
+Mutating task endpoints now require `X-API-Key`. Keep the local development key in `.env` or exported shell variables, and update examples whenever protected routes change.

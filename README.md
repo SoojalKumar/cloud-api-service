@@ -12,7 +12,7 @@ Cloud-Based API Service is a production-style FastAPI backend scaffold designed 
 - Request ID middleware for traceability
 - Baseline security headers on API responses
 - Consistent JSON error responses
-- Centralized runtime settings with configurable CORS origins and database path
+- Centralized runtime settings with configurable CORS origins, database path, and API key
 - GitHub Actions test workflow
 - Docker-ready runtime setup
 - Clean package layout for routes, services, and models
@@ -60,13 +60,13 @@ GET http://127.0.0.1:8000/api/v1/info
 Task resource:
 
 ```text
-POST   http://127.0.0.1:8000/api/v1/tasks
+POST   http://127.0.0.1:8000/api/v1/tasks  (requires X-API-Key)
 GET    http://127.0.0.1:8000/api/v1/tasks
 GET    http://127.0.0.1:8000/api/v1/tasks?status=in_progress&offset=0&limit=25
 GET    http://127.0.0.1:8000/api/v1/tasks/summary
 GET    http://127.0.0.1:8000/api/v1/tasks/{task_id}
-PATCH  http://127.0.0.1:8000/api/v1/tasks/{task_id}
-DELETE http://127.0.0.1:8000/api/v1/tasks/{task_id}
+PATCH  http://127.0.0.1:8000/api/v1/tasks/{task_id}  (requires X-API-Key)
+DELETE http://127.0.0.1:8000/api/v1/tasks/{task_id}  (requires X-API-Key)
 ```
 
 Example health response:
@@ -85,6 +85,7 @@ Example task creation:
 ```bash
 curl -X POST http://127.0.0.1:8000/api/v1/tasks \
   -H "Content-Type: application/json" \
+  -H "X-API-Key: development-api-key" \
   -d '{"title":"Prepare deployment plan","description":"Document next production steps."}'
 ```
 
@@ -98,6 +99,10 @@ Example task summary response:
   "done": 1
 }
 ```
+
+## Authentication
+
+Write operations on `/api/v1/tasks` are protected by a shared API key. Send the `X-API-Key` header with the value from `API_KEY` when creating, updating, or deleting tasks. Read-only task endpoints remain public for now.
 
 ## Persistence
 
@@ -151,6 +156,7 @@ export APP_NAME="Cloud-Based API Service"
 export APP_VERSION="0.1.0"
 export APP_ENV="development"
 export DATABASE_PATH="cloud_api_service.db"
+export API_KEY="development-api-key"
 export CORS_ALLOWED_ORIGINS="http://localhost:3000,https://example.com"
 ```
 
