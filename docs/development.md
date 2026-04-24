@@ -42,6 +42,7 @@ python -m pytest
 - List endpoints should support safe pagination defaults.
 - Public responses should preserve request IDs and security headers.
 - README examples should be updated when API behavior changes.
+- Use the CLI and Makefile so local setup stays consistent across environments.
 
 ## Persistence Notes
 

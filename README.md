@@ -14,6 +14,8 @@ Cloud-Based API Service is a production-style FastAPI backend scaffold designed 
 - Consistent JSON error responses
 - Centralized runtime settings with configurable CORS origins, database path, and API key
 - GitHub Actions test workflow
+- Project CLI for migrations, demo seeding, reset, and config inspection
+- Makefile shortcuts for common local operations
 - Docker-ready runtime setup
 - Clean package layout for routes, services, and models
 
@@ -142,6 +144,8 @@ Run the automated endpoint tests:
 
 ```bash
 python -m pytest
+# or
+make test
 ```
 
 Current coverage includes:
@@ -174,6 +178,24 @@ export API_KEY="development-api-key"
 export CORS_ALLOWED_ORIGINS="http://localhost:3000,https://example.com"
 ```
 
+## Local Operations
+
+The project includes a small management CLI and `Makefile` shortcuts for common workflows:
+
+```bash
+make migrate
+make seed-demo
+make run
+make show-config
+```
+
+Direct CLI usage is also available:
+
+```bash
+python -m app.cli migrate
+python -m app.cli seed-demo
+```
+
 ## Docker
 
 Build and run the API in a container:
@@ -195,4 +217,4 @@ GitHub Actions runs the pytest suite on every push and pull request to `main`, h
 
 ## Development Notes
 
-See [docs/development.md](docs/development.md) for local workflow, commit guidelines, and current development priorities.
+See [docs/development.md](docs/development.md) for local workflow, commit guidelines, and current development priorities. Operational setup is documented in [docs/operations.md](docs/operations.md).
