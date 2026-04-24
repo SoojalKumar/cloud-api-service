@@ -28,6 +28,13 @@ class ResourceNotFoundError(AppError):
     error = "not_found"
 
 
+class AuthenticationError(AppError):
+    """Raised when request authentication fails."""
+
+    status_code = status.HTTP_401_UNAUTHORIZED
+    error = "unauthorized"
+
+
 def _request_id(request: Request) -> Optional[str]:
     return getattr(request.state, "request_id", None)
 

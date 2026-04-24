@@ -154,6 +154,8 @@ def test_mutating_task_endpoints_require_api_key() -> None:
     create_response = client.post("/api/v1/tasks", json={"title": "Protected"})
 
     assert create_response.status_code == 401
+    assert create_response.json()["error"] == "unauthorized"
+    assert create_response.json()["message"] == "Invalid API key."
 
     created_task = client.post(
         "/api/v1/tasks",
@@ -168,4 +170,6 @@ def test_mutating_task_endpoints_require_api_key() -> None:
     delete_response = client.delete(f"/api/v1/tasks/{created_task['id']}")
 
     assert update_response.status_code == 401
+    assert update_response.json()["error"] == "unauthorized"
     assert delete_response.status_code == 401
+    assert delete_response.json()["error"] == "unauthorized"
