@@ -12,12 +12,16 @@ from app.errors import (
     http_error_handler,
     validation_error_handler,
 )
+from app.logging import configure_logging
+from app.middleware.access_log import AccessLogMiddleware
 from app.middleware.request_id import RequestIdMiddleware
 from app.middleware.security_headers import SecurityHeadersMiddleware
 from app.routes.root import router as root_router
 from app.routes.system import router as system_router
 from app.routes.tasks import router as tasks_router
 
+
+configure_logging()
 
 app = FastAPI(
     title=settings.app_name,
@@ -34,6 +38,7 @@ app.add_middleware(
 )
 app.add_middleware(SecurityHeadersMiddleware)
 app.add_middleware(RequestIdMiddleware)
+app.add_middleware(AccessLogMiddleware)
 app.add_exception_handler(AppError, app_error_handler)
 app.add_exception_handler(StarletteHTTPException, http_error_handler)
 app.add_exception_handler(RequestValidationError, validation_error_handler)
