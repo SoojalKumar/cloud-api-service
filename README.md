@@ -79,7 +79,8 @@ Example health response:
   "service": "Cloud-Based API Service",
   "version": "0.1.0",
   "environment": "development",
-  "database": "ok"
+  "database": "ok",
+  "uptime_seconds": 12.438
 }
 ```
 

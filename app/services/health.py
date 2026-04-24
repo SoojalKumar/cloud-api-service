@@ -2,9 +2,10 @@
 
 from app.config import settings
 from app.database import database_ready
+from app.runtime import uptime_seconds
 
 
-def get_health_payload() -> dict[str, str]:
+def get_health_payload() -> dict[str, object]:
     """Build the API health response."""
 
     db_status = "ok" if database_ready(settings.database_path) else "error"
@@ -14,4 +15,5 @@ def get_health_payload() -> dict[str, str]:
         "version": settings.app_version,
         "environment": settings.environment,
         "database": db_status,
+        "uptime_seconds": round(uptime_seconds(), 3),
     }

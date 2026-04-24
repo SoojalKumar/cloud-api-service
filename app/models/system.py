@@ -11,6 +11,7 @@ class HealthResponse(BaseModel):
     version: str
     environment: str
     database: str
+    uptime_seconds: float
 
 
 class ServiceInfoResponse(BaseModel):
