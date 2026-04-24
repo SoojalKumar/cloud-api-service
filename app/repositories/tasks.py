@@ -3,7 +3,7 @@
 from typing import Optional
 import sqlite3
 
-from app.database import connect, initialize_schema
+from app.database import connect, initialize_database
 from app.models.tasks import TaskResponse, TaskStatus
 
 
@@ -12,7 +12,7 @@ class SQLiteTaskRepository:
 
     def __init__(self, database_path: str) -> None:
         self._connection = connect(database_path)
-        initialize_schema(self._connection)
+        initialize_database(self._connection)
 
     def create(self, task: TaskResponse) -> TaskResponse:
         self._connection.execute(

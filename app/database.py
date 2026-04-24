@@ -3,17 +3,7 @@
 from pathlib import Path
 import sqlite3
 
-
-TASKS_SCHEMA = """
-CREATE TABLE IF NOT EXISTS tasks (
-    id TEXT PRIMARY KEY,
-    title TEXT NOT NULL,
-    description TEXT,
-    status TEXT NOT NULL,
-    created_at TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP,
-    updated_at TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP
-);
-"""
+from app.migrations import apply_migrations
 
 
 def connect(database_path: str) -> sqlite3.Connection:
@@ -28,11 +18,10 @@ def connect(database_path: str) -> sqlite3.Connection:
     return connection
 
 
-def initialize_schema(connection: sqlite3.Connection) -> None:
-    """Create database tables required by the application."""
+def initialize_database(connection: sqlite3.Connection) -> list[str]:
+    """Apply pending migrations required by the application."""
 
-    connection.execute(TASKS_SCHEMA)
-    connection.commit()
+    return apply_migrations(connection)
 
 
 def database_ready(database_path: str) -> bool:
