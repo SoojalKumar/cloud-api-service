@@ -31,10 +31,13 @@ python -m pytest
 
 ## Current Development Priorities
 
-- Evolve the shared API key approach into role-aware authentication.
-- Introduce database migrations if the schema grows beyond the current SQLite foundation.
-- Add structured logging for production observability.
-- Keep expanding test coverage as the API grows.
+The core service is feature-complete for a portfolio backend. Work from here should stay small and purposeful. Good next candidates:
+
+- Add an additional resource alongside tasks to exercise the layering on a second domain.
+- Evolve the shared API key into user accounts and role-aware authorization.
+- Introduce structured JSON logging once a log aggregator is chosen.
+- Add an actual hosted deployment example (Render, Fly.io, or Railway) under `docs/operations.md`.
+- Keep expanding test coverage as new endpoints are added.
 
 ## API Quality Checklist
 

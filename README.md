@@ -1,13 +1,24 @@
 # Cloud-Based API Service
 
-Cloud-Based API Service is a production-style FastAPI backend scaffold designed to grow into a larger cloud application over time. The project is being built incrementally with small, meaningful commits so the architecture stays clean as the service expands.
+Cloud-Based API Service is a production-style FastAPI backend built incrementally with small, reviewable commits. It ships with typed endpoints, SQLite persistence, versioned migrations, API key authentication, request tracing, standardized error responses, a management CLI, Docker support, and a GitHub Actions test workflow.
+
+## Project Status
+
+The core service is feature-complete for a portfolio backend:
+
+- End-to-end API for a real resource (`tasks`) with validation, pagination, and filtering.
+- Persistence layer with versioned migrations and a readiness probe.
+- Authenticated mutations, consistent error payloads, security headers, request IDs, access logging, and uptime reporting.
+- Full test suite wired to CI, plus Make/CLI ergonomics for local work.
+
+See [docs/architecture.md](docs/architecture.md) for module layout and request flow.
 
 ## Current Scope
 
 - FastAPI application bootstrap
 - Versioned API routes under `/api/v1`
 - Typed response models using Pydantic
-- Health and service metadata endpoints with database readiness details
+- Health and service metadata endpoints with database readiness and process uptime
 - Task CRUD resource with SQLite persistence, status filtering, pagination, and summary metrics
 - Request ID middleware for traceability
 - Baseline security headers on API responses
@@ -218,4 +229,6 @@ GitHub Actions runs the pytest suite on every push and pull request to `main`, h
 
 ## Development Notes
 
-See [docs/development.md](docs/development.md) for local workflow, commit guidelines, and current development priorities. Operational setup is documented in [docs/operations.md](docs/operations.md).
+- [docs/architecture.md](docs/architecture.md) — module layout, request lifecycle, extension points.
+- [docs/development.md](docs/development.md) — local workflow, commit guidelines, current priorities.
+- [docs/operations.md](docs/operations.md) — Make/CLI commands, database lifecycle, deployment notes.
