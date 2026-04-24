@@ -10,6 +10,7 @@ class HealthResponse(BaseModel):
     service: str
     version: str
     environment: str
+    database: str
 
 
 class ServiceInfoResponse(BaseModel):
@@ -19,3 +20,5 @@ class ServiceInfoResponse(BaseModel):
     version: str
     environment: str
     docs_url: str
+    auth_mode: str
+    persistence: str

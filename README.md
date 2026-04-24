@@ -7,7 +7,7 @@ Cloud-Based API Service is a production-style FastAPI backend scaffold designed 
 - FastAPI application bootstrap
 - Versioned API routes under `/api/v1`
 - Typed response models using Pydantic
-- Health and service metadata endpoints
+- Health and service metadata endpoints with database readiness details
 - Task CRUD resource with SQLite persistence, status filtering, pagination, and summary metrics
 - Request ID middleware for traceability
 - Baseline security headers on API responses
@@ -76,7 +76,8 @@ Example health response:
   "status": "ok",
   "service": "Cloud-Based API Service",
   "version": "0.1.0",
-  "environment": "development"
+  "environment": "development",
+  "database": "ok"
 }
 ```
 
@@ -97,6 +98,19 @@ Example task summary response:
   "todo": 1,
   "in_progress": 1,
   "done": 1
+}
+```
+
+Example service info response:
+
+```json
+{
+  "name": "Cloud-Based API Service",
+  "version": "0.1.0",
+  "environment": "development",
+  "docs_url": "/docs",
+  "auth_mode": "api_key",
+  "persistence": "sqlite"
 }
 ```
 

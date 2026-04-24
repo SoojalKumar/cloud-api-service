@@ -33,3 +33,14 @@ def initialize_schema(connection: sqlite3.Connection) -> None:
 
     connection.execute(TASKS_SCHEMA)
     connection.commit()
+
+
+def database_ready(database_path: str) -> bool:
+    """Return whether SQLite can be opened and queried successfully."""
+
+    connection = connect(database_path)
+    try:
+        connection.execute("SELECT 1").fetchone()
+        return True
+    finally:
+        connection.close()

@@ -17,6 +17,7 @@ def test_health_endpoint_returns_service_status() -> None:
         "service": "Cloud-Based API Service",
         "version": "0.1.0",
         "environment": "development",
+        "database": "ok",
     }
 
 
@@ -29,4 +30,6 @@ def test_info_endpoint_returns_public_metadata() -> None:
         "version": "0.1.0",
         "environment": "development",
         "docs_url": "/docs",
+        "auth_mode": "api_key",
+        "persistence": "sqlite",
     }

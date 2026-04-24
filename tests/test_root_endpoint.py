@@ -1,4 +1,4 @@
-"""Tests for the API root endpoint."""
+"""Tests for the root API endpoint."""
 
 from fastapi.testclient import TestClient
 
@@ -17,4 +17,6 @@ def test_root_endpoint_returns_service_metadata() -> None:
         "version": "0.1.0",
         "environment": "development",
         "docs_url": "/docs",
+        "auth_mode": "api_key",
+        "persistence": "sqlite",
     }

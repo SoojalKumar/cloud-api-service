@@ -11,4 +11,6 @@ def get_service_info_payload() -> dict[str, str]:
         "version": settings.app_version,
         "environment": settings.environment,
         "docs_url": "/docs",
+        "auth_mode": "api_key",
+        "persistence": "sqlite",
     }
