@@ -18,7 +18,7 @@ A small **FastAPI** service with **SQLite** persistence, **API key** auth, **ver
 | **Health** | `GET /api/v1/health` |
 | **Demo write key** | `development-api-key` (paste in the UI for create / update / delete) |
 
-On the free Spaces tier the filesystem is **ephemeral**; each cold start re-runs migrations and **seed-demo** so you always see three sample tasks. To **auto-sync** this repo to the Space on every push to `main`, configure GitHub Actions secrets `HF_USERNAME` and `HF_TOKEN` (see [Deployment](#hugging-face-spaces-free---live-demo)). If those are missing, the workflow skips quietly—deploy or sync manually from the Space UI.
+On the free Spaces tier the filesystem is **ephemeral**; each cold start re-runs migrations and **seed-demo** so you always see three sample tasks. For GitHub → Space auto-sync, see [Hugging Face deployment](#hugging-face-deployment) below.
 
 ## Why this project (portfolio)
 
@@ -26,7 +26,7 @@ On the free Spaces tier the filesystem is **ephemeral**; each cold start re-runs
 - **Ops-shaped defaults** — Request IDs, access logs, security headers (including `Content-Security-Policy: frame-ancestors` so the Hugging Face catalog can embed the demo), structured errors with optional `fields[]` on validation failures.
 - **Testable app factory** — `create_app()` so tests can assert JSON root vs. static UI without a real `frontend/dist/`.
 - **One container** — Multi-stage build: Bun builds the UI; Python serves it under `/` via Starlette `StaticFiles` when `frontend/dist` is present.
-- **CI** — Pytest and frontend build run in parallel; optional HF deploy workflow when secrets are set.
+- **CI** — Pytest and frontend build run in parallel; a separate workflow can sync `main` to the Hugging Face Space when [secrets are set](#hugging-face-deployment).
 
 See [docs/architecture.md](docs/architecture.md) for request flow and module layout.
 
@@ -166,34 +166,39 @@ docker run -p 8000:8000 cloud-api-service
 
 Then: <http://127.0.0.1:8000/> (UI), <http://127.0.0.1:8000/docs> (OpenAPI). Mount a volume on `/app/data` if you need SQLite to survive restarts on your host.
 
-## Deployment
+## Hugging Face deployment
 
-### Hugging Face Spaces (free) — [live demo](https://skvidhani-cloud-api-service.hf.space)
+The **documented** public demo is **Hugging Face Spaces** only. To run the same image on your own machine or another host, use [Docker](#docker) — persist `/app/data` for SQLite, or set `DATABASE_PATH`.
 
-The Space uses the **Docker** SDK (`sdk: docker`, `app_port: 8000` in `.github/hf_space_readme.md`).
+**This instance (the links in the [Live demo](#live-demo) table):**
 
-1. Create a Docker Space (or use an existing one).
-2. In GitHub: **Settings → Secrets and variables → Actions**, add **`HF_USERNAME`** (Hugging Face username) and **`HF_TOKEN`** (write token from [HF token settings](https://huggingface.co/settings/tokens)).
-3. On push to `main`, `.github/workflows/deploy-hf-space.yml` swaps in the Space README and force-pushes to the Space; Hugging Face rebuilds the image.
+| What | URL |
+|------|-----|
+| Running app (React + API) | <https://skvidhani-cloud-api-service.hf.space/> |
+| Space (logs, build, **Settings**, files) | <https://huggingface.co/spaces/skvidhani/cloud-api-service> |
+| Space repo path on Hugging Face | `skvidhani/cloud-api-service` (Docker Space) |
+| Config baked for HF | [`.github/hf_space_readme.md`](.github/hf_space_readme.md) — `sdk: docker`, `app_port: 8000` |
 
-If secrets are unset, the workflow **succeeds but skips** the push—configure secrets or deploy from the Space UI. Live URL pattern: `https://<username>-cloud-api-service.hf.space` (yours may differ; use the table at the top of this file).
+**How the GitHub → Space sync works**
 
-### Fly.io (optional)
+The workflow is [`.github/workflows/deploy-hf-space.yml`](.github/workflows/deploy-hf-space.yml). On `push` to `main` (and manual `workflow_dispatch`):
 
-`fly.toml` is included: health check on `/api/v1/health`, volume at `/app/data` for SQLite. Set a strong `API_KEY` with `flyctl secrets set` for a public app.
+1. The **Verify deploy secrets** step in the workflow tests `HF_TOKEN` and `HF_USERNAME`. If **either** is empty, the job **succeeds** but all later steps are **skipped** (no force-push, no failure).
+2. If secrets are set: check out, copy [`.github/hf_space_readme.md`](.github/hf_space_readme.md) over the repo root `README.md`, commit, then **force-push** to `https://huggingface.co/spaces/<HF_USERNAME>/cloud-api-service` on branch `main`.
+3. Hugging Face then rebuilds the **Docker** image from that repo; the `README.md` front-matter in the Space tells HF to use the Docker SDK and port **8000**.
 
-### Any Docker host
+**For this Space**, `HF_USERNAME` must be the Space owner, **`skvidhani`**, to match the URL above. The token: [Hugging Face → Settings → Access tokens](https://huggingface.co/settings/tokens) — create a **write** token, then in GitHub: **Repository → Settings → Secrets and variables → Actions** — add `HF_USERNAME` and `HF_TOKEN`. After the next push to `main`, the sync runs (or trigger **Actions → Deploy to Hugging Face Space → Run workflow**).
 
-`docker run` the image; persist `/app/data` or point `DATABASE_PATH` at your storage.
+If you **fork** the repo, create a Docker Space under *your* account (same `cloud-api-service` name if you use the default workflow), set secrets to *your* HF username and token, and push to `main`.
 
 ## CI
 
-On every push/PR to `main`:
+Workflow [`.github/workflows/tests.yml`](https://github.com/SoojalKumar/cloud-api-service/blob/main/.github/workflows/tests.yml) on every **push and pull request** to `main`:
 
-- **pytest** — full backend suite.
+- **Run pytest** — full backend test suite.
 - **Build frontend** — `bun install --frozen-lockfile`, `bun run typecheck`, `bun run build`.
 
-Workflow **Deploy to Hugging Face Space** runs on the same trigger; it only pushes when `HF_USERNAME` and `HF_TOKEN` are set.
+Workflow [`.github/workflows/deploy-hf-space.yml`](https://github.com/SoojalKumar/cloud-api-service/blob/main/.github/workflows/deploy-hf-space.yml) runs on **push to `main`** (and can be run manually). It only performs the force-push to Hugging Face when both **`HF_USERNAME`** and **`HF_TOKEN`** are configured; otherwise it no-ops (see [Hugging Face deployment](#hugging-face-deployment)).
 
 ## Docs
 

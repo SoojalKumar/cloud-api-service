@@ -36,7 +36,7 @@ The core service is feature-complete for a portfolio backend. Work from here sho
 - Add an additional resource alongside tasks to exercise the layering on a second domain.
 - Evolve the shared API key into user accounts and role-aware authorization.
 - Introduce structured JSON logging once a log aggregator is chosen.
-- Add an actual hosted deployment example (Render, Fly.io, or Railway) under `docs/operations.md`.
+- Optional: extend `docs/operations.md` with another hosted path if you outgrow Hugging Face Spaces (same Docker image).
 - Keep expanding test coverage as new endpoints are added.
 
 ## API Quality Checklist
