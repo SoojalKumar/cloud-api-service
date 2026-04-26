@@ -16,7 +16,8 @@ FROM python:3.11-slim AS runtime
 
 ENV PYTHONDONTWRITEBYTECODE=1 \
     PYTHONUNBUFFERED=1 \
-    DATABASE_PATH=/app/data/cloud_api_service.db
+    DATABASE_PATH=/app/data/cloud_api_service.db \
+    APP_ENV=production
 
 # Create a non-root user. Hugging Face Spaces enforces this; running as root
 # also bites you on most other Docker hosts. UID 1000 is the convention.

@@ -15,9 +15,9 @@ primary_region = "iad"
 [build]
 
 [env]
-  ENVIRONMENT = "production"
-  # DATABASE_PATH defaults to /app/data/cloud_api_service.db inside the image;
-  # the volume below mounts at the same path so SQLite survives redeploys.
+  # DATABASE_PATH and APP_ENV default to the production values baked into the
+  # Dockerfile; the volume below mounts at that DATABASE_PATH so SQLite
+  # survives redeploys. Override here if this app is hosted in staging.
 
 [mounts]
   source = "cloud_api_service_data"
