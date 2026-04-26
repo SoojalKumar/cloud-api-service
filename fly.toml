@@ -1,0 +1,46 @@
+# fly.toml - Fly.io deployment config for the Cloud-Based API Service.
+#
+# The image built by Dockerfile is a single multi-stage container that bundles
+# the FastAPI backend AND the React/Vite frontend so the demo lives on one
+# origin (no CORS surface in production).
+#
+# Persistence: tasks live in SQLite, which needs a persistent disk. The
+# `[mounts]` block attaches a Fly volume at /data that the app reads from via
+# the DATABASE_PATH env var. Re-deploys keep the data; destroying the volume
+# wipes it.
+
+app = "cloud-api-service"
+primary_region = "iad"
+
+[build]
+
+[env]
+  ENVIRONMENT = "production"
+  # DATABASE_PATH defaults to /app/data/cloud_api_service.db inside the image;
+  # the volume below mounts at the same path so SQLite survives redeploys.
+
+[mounts]
+  source = "cloud_api_service_data"
+  destination = "/app/data"
+
+[http_service]
+  internal_port = 8000
+  force_https = true
+  # Keep one machine warm so the first recruiter click loads instantly; allow
+  # extras to spin down if the (unlikely) demo traffic ever spikes.
+  auto_stop_machines = "stop"
+  auto_start_machines = true
+  min_machines_running = 1
+  processes = ["app"]
+
+  [[http_service.checks]]
+    interval = "30s"
+    timeout = "5s"
+    grace_period = "10s"
+    method = "GET"
+    path = "/api/v1/health"
+
+[[vm]]
+  cpu_kind = "shared"
+  cpus = 1
+  memory = "256mb"
