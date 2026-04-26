@@ -29,6 +29,7 @@ See [docs/architecture.md](docs/architecture.md) for module layout and request f
 - Makefile shortcuts for common local operations
 - Docker-ready runtime setup
 - Clean package layout for routes, services, and models
+- Minimal React + Vite + TypeScript demo UI in `frontend/` for visual exploration of the API
 
 ## Run The Server
 
@@ -187,7 +188,7 @@ export APP_VERSION="0.1.0"
 export APP_ENV="development"
 export DATABASE_PATH="cloud_api_service.db"
 export API_KEY="development-api-key"
-export CORS_ALLOWED_ORIGINS="http://localhost:3000,https://example.com"
+export CORS_ALLOWED_ORIGINS="http://localhost:3000,http://localhost:5173"
 ```
 
 ## Local Operations
@@ -207,6 +208,20 @@ Direct CLI usage is also available:
 python -m app.cli migrate
 python -m app.cli seed-demo
 ```
+
+## Demo Frontend
+
+A small React + Vite + TypeScript UI lives in [`frontend/`](frontend/) and talks to the API through Vite's dev proxy, so there is no CORS dance during local development.
+
+![Demo UI screenshot](frontend/screenshot.png)
+
+```bash
+cd frontend
+npm install        # or: bun install
+npm run dev        # or: bun run dev
+```
+
+Open <http://localhost:5173>, paste your `API_KEY` (default `development-api-key`) into the API key field, and create / advance / delete tasks against the running backend on `:8000`. See [`frontend/README.md`](frontend/README.md) for the design rationale and build instructions.
 
 ## Docker
 
