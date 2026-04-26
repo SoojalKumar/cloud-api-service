@@ -8,11 +8,15 @@ Cloud-Based API Service is a production-style FastAPI backend built incrementall
 
 ## Live Demo
 
-A hosted copy of the full app (API + React UI served from one image) lives on Hugging Face Spaces:
+The full app (API + React UI served from one image) is deployed on Hugging Face Spaces:
 
-> **Demo:** `https://<your-hf-username>-cloud-api-service.hf.space` *(set up once; see [Deployment](#deployment))*
+- **App:** <https://skvidhani-cloud-api-service.hf.space>
+- **Space page (logs, build history, file viewer):** <https://huggingface.co/spaces/skvidhani/cloud-api-service>
+- **OpenAPI / Swagger:** `/docs` on the same host
+- **Health probe:** `/api/v1/health`
+- **Write API key for the demo:** `development-api-key`
 
-Paste the default write key `development-api-key` into the UI to create, advance, or delete tasks. OpenAPI docs are on `/docs` and the health probe is `/api/v1/health` on the same host. The free Spaces tier uses an ephemeral filesystem, so each cold boot re-seeds three demo tasks — every visitor gets a working app, not an empty one.
+Paste the write key into the UI to create, advance, or delete tasks. The free Spaces tier uses an ephemeral filesystem, so each cold boot re-seeds three demo tasks — every visitor gets a working app, not an empty one. The container is rebuilt automatically on every push to `main` via `.github/workflows/deploy-hf-space.yml`.
 
 ## Project Status
 
@@ -273,19 +277,19 @@ The container boots by running `app.cli migrate` and then `app.cli seed-demo` be
 
 The project is set up to deploy to three hosts without code changes — pick the one that matches your cost/uptime preferences:
 
-### Hugging Face Spaces (free, always-on, no credit card)
+### Hugging Face Spaces (free, always-on, no credit card) — currently live
 
-The `deploy-hf-space` workflow in `.github/workflows/` pushes the repo to a Hugging Face Space on every push to `main`, swapping in an HF-specific README (`.github/hf_space_readme.md`) that carries the required YAML front-matter.
+The `deploy-hf-space` workflow in `.github/workflows/` pushes the repo to the Hugging Face Space on every push to `main`, swapping in an HF-specific README (`.github/hf_space_readme.md`) that carries the required YAML front-matter (`sdk: docker`, `app_port: 8000`).
 
-One-time setup:
+One-time setup (already done for this project; documented here so forks can replicate):
 
-1. Create a Hugging Face account and a new **Docker** Space named `cloud-api-service`.
+1. Create a Hugging Face account and a new **Docker** Space. If the UI defaults to Gradio, change the SDK under *Settings* before the first push (or let the force-push flip it via the README YAML).
 2. Generate a "write" token at <https://huggingface.co/settings/tokens>.
-3. In the GitHub repo settings, add two **Actions secrets**: `HF_USERNAME` (your HF account name) and `HF_TOKEN` (the write token).
+3. In GitHub repo settings, add two **Actions secrets**: `HF_USERNAME` (your HF account name) and `HF_TOKEN` (the write token).
 
-Push to `main`; the workflow force-pushes the repo into the Space and HF Spaces rebuilds the container. Live URL pattern: `https://<HF_USERNAME>-cloud-api-service.hf.space`.
+Push to `main`; the workflow force-pushes the repo into the Space and HF rebuilds the container. Live URL pattern: `https://<HF_USERNAME>-cloud-api-service.hf.space`.
 
-Note: the free Spaces filesystem is ephemeral, so SQLite resets on every container restart. The `seed-demo` step in the Dockerfile recreates three demo tasks on each boot, which is the right behavior for a stateless demo.
+The free Spaces filesystem is ephemeral, so SQLite resets on every container restart. The `seed-demo` step in the Dockerfile recreates three demo tasks on each boot, which is the right behavior for a stateless demo.
 
 ### Fly.io (pay-as-you-go; ~$0 on `auto_stop_machines = "stop"` with the $5 trial credit)
 
