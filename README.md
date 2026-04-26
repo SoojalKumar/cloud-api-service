@@ -217,11 +217,11 @@ A small React + Vite + TypeScript UI lives in [`frontend/`](frontend/) and talks
 
 ```bash
 cd frontend
-npm install        # or: bun install
-npm run dev        # or: bun run dev
+bun install        # uses the committed bun.lock; npm works as a fallback
+bun run dev
 ```
 
-Open <http://localhost:5173>, paste your `API_KEY` (default `development-api-key`) into the API key field, and create / advance / delete tasks against the running backend on `:8000`. See [`frontend/README.md`](frontend/README.md) for the design rationale and build instructions.
+Open <http://localhost:5173>, paste your `API_KEY` (default `development-api-key`) into the API key field, and create / advance / delete tasks against the running backend on `:8000`. See [`frontend/README.md`](frontend/README.md) for the design rationale, package-manager note, and build instructions.
 
 ## Docker
 

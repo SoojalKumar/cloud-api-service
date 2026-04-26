@@ -22,9 +22,14 @@ there is no CORS dance during development.
 
 ```bash
 cd frontend
-npm install        # or: bun install
-npm run dev        # or: bun run dev
+bun install        # uses the committed bun.lock for reproducibility
+bun run dev
 ```
+
+`bun` is the preferred package manager because the only committed lockfile is
+`bun.lock`. `npm install` works as a fallback but will resolve fresh versions
+within the `^` ranges in `package.json` and may drift from what was tested. If
+you commit a `package-lock.json`, prefer `npm` to keep one source of truth.
 
 Open <http://localhost:5173>. Paste your `API_KEY` (from `.env` or
 `development-api-key` by default) into the API key field — it is stored in
@@ -33,20 +38,20 @@ Open <http://localhost:5173>. Paste your `API_KEY` (from `.env` or
 If your backend runs on a different host, point the dev proxy at it:
 
 ```bash
-VITE_BACKEND_URL=http://192.168.1.5:8000 npm run dev
+VITE_BACKEND_URL=http://192.168.1.5:8000 bun run dev
 ```
 
 ## Build
 
 ```bash
-npm run build       # type-checks then builds to dist/
-npm run preview     # serve the production build locally
+bun run build       # type-checks then builds to dist/
+bun run preview     # serve the production build locally
 ```
 
 For a deployed build, set the API base URL at build time:
 
 ```bash
-VITE_API_BASE_URL=https://api.example.com npm run build
+VITE_API_BASE_URL=https://api.example.com bun run build
 ```
 
 When `VITE_API_BASE_URL` is unset, the build calls relative `/api/*` paths,
