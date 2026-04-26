@@ -92,13 +92,39 @@ async function request<T>(path: string, options: RequestOptions = {}): Promise<T
   }
 
   const text = await response.text();
-  const payload = text ? (JSON.parse(text) as unknown) : null;
+  const payload = parseJsonOrNull(text);
 
   if (!response.ok) {
-    throw new ApiError(response.status, (payload ?? {}) as Partial<ApiErrorEnvelope>);
+    // The body may be HTML from a proxy / load balancer / 502 page; in that
+    // case parseJsonOrNull returns null and we still surface a structured
+    // ApiError with a helpful message instead of a SyntaxError.
+    const envelope: Partial<ApiErrorEnvelope> = isErrorEnvelope(payload)
+      ? payload
+      : {
+          error: "non_json_response",
+          message:
+            text.trim().slice(0, 200) ||
+            `Request failed with status ${response.status}`,
+        };
+    throw new ApiError(response.status, envelope);
   }
 
   return payload as T;
+}
+
+function parseJsonOrNull(text: string): unknown {
+  if (!text) {
+    return null;
+  }
+  try {
+    return JSON.parse(text) as unknown;
+  } catch {
+    return null;
+  }
+}
+
+function isErrorEnvelope(value: unknown): value is Partial<ApiErrorEnvelope> {
+  return typeof value === "object" && value !== null && "error" in value;
 }
 
 export const api = {
