@@ -150,6 +150,25 @@ def test_task_validation_rejects_blank_title() -> None:
     assert response.json()["error"] == "validation_error"
 
 
+def test_validation_error_payload_includes_failing_fields() -> None:
+    """Clients should be able to point a user at the wrong field without
+    reading server logs. Validation errors include a ``fields`` array with
+    one entry per failing input."""
+
+    response = client.post(
+        "/api/v1/tasks",
+        headers=auth_headers,
+        json={"description": "missing the required title"},
+    )
+
+    assert response.status_code == 422
+    body = response.json()
+    assert body["error"] == "validation_error"
+    fields = body.get("fields") or []
+    assert any(entry["field"].endswith("title") for entry in fields), fields
+    assert all({"field", "message", "type"} <= entry.keys() for entry in fields)
+
+
 def test_mutating_task_endpoints_require_api_key() -> None:
     create_response = client.post("/api/v1/tasks", json={"title": "Protected"})
 
