@@ -16,7 +16,7 @@ A small, production-flavored backend service (FastAPI + SQLite) with a React
 dashboard bundled into the same image. This Space is auto-synced from the
 canonical repo on GitHub on every push to `main`.
 
-- **Source of truth / issues / tests**: <https://github.com/skvvidhani/cloud-api-service>
+- **Source of truth / issues / tests**: <https://github.com/SoojalKumar/cloud-api-service>
 - **OpenAPI docs**: `/docs` on this Space
 - **Health probe**: `/api/v1/health`
 - **Write API key for the demo**: `development-api-key` (paste into the UI to

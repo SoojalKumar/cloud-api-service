@@ -4,103 +4,79 @@
 [![Python 3.11](https://img.shields.io/badge/python-3.11-blue.svg)](https://www.python.org/downloads/release/python-3110/)
 [![License: MIT](https://img.shields.io/badge/license-MIT-informational.svg)](LICENSE)
 
-Cloud-Based API Service is a production-style FastAPI backend built incrementally with small, reviewable commits. It ships with typed endpoints, SQLite persistence, versioned migrations, API key authentication, request tracing, standardized error responses, a management CLI, a multi-stage Docker image that bundles a React demo UI on the same origin, and a GitHub Actions pipeline that runs the test suite and builds the frontend on every push.
+A small **FastAPI** service with **SQLite** persistence, **API key** auth, **versioned migrations**, and a **React + Vite + TypeScript** dashboard shipped in the **same Docker image** (API and UI on one origin). Built with incremental commits, full **pytest** coverage, and **GitHub Actions** (backend tests + frontend typecheck and production build on every push).
 
-## Live Demo
+**Stack:** FastAPI · Pydantic · SQLite (repository pattern, threading-safe access) · React 18 · Vite 5 · TypeScript · Bun (lockfile) · Docker (multi-stage) · GitHub Actions
 
-The full app (API + React UI served from one image) is deployed on Hugging Face Spaces:
+## Live demo
 
-- **App:** <https://skvidhani-cloud-api-service.hf.space>
-- **Space page (logs, build history, file viewer):** <https://huggingface.co/spaces/skvidhani/cloud-api-service>
-- **OpenAPI / Swagger:** `/docs` on the same host
-- **Health probe:** `/api/v1/health`
-- **Write API key for the demo:** `development-api-key`
+| | |
+|-|-|
+| **App** | <https://skvidhani-cloud-api-service.hf.space> |
+| **Hugging Face Space** (build logs, files) | <https://huggingface.co/spaces/skvidhani/cloud-api-service> |
+| **OpenAPI** | `/docs` on the app host |
+| **Health** | `GET /api/v1/health` |
+| **Demo write key** | `development-api-key` (paste in the UI for create / update / delete) |
 
-Paste the write key into the UI to create, advance, or delete tasks. The free Spaces tier uses an ephemeral filesystem, so each cold boot re-seeds three demo tasks — every visitor gets a working app, not an empty one. The container is rebuilt automatically on every push to `main` via `.github/workflows/deploy-hf-space.yml`.
+On the free Spaces tier the filesystem is **ephemeral**; each cold start re-runs migrations and **seed-demo** so you always see three sample tasks. To **auto-sync** this repo to the Space on every push to `main`, configure GitHub Actions secrets `HF_USERNAME` and `HF_TOKEN` (see [Deployment](#hugging-face-spaces-free---live-demo)). If those are missing, the workflow skips quietly—deploy or sync manually from the Space UI.
 
-## Project Status
+## Why this project (portfolio)
 
-The core service is feature-complete for a portfolio backend:
+- **End-to-end resource API** — Tasks with validation, pagination, filters, and an aggregate summary backed by SQL (`GROUP BY`), not a capped in-memory count.
+- **Ops-shaped defaults** — Request IDs, access logs, security headers (including `Content-Security-Policy: frame-ancestors` so the Hugging Face catalog can embed the demo), structured errors with optional `fields[]` on validation failures.
+- **Testable app factory** — `create_app()` so tests can assert JSON root vs. static UI without a real `frontend/dist/`.
+- **One container** — Multi-stage build: Bun builds the UI; Python serves it under `/` via Starlette `StaticFiles` when `frontend/dist` is present.
+- **CI** — Pytest and frontend build run in parallel; optional HF deploy workflow when secrets are set.
 
-- End-to-end API for a real resource (`tasks`) with validation, pagination, and filtering.
-- Persistence layer with versioned migrations and a readiness probe.
-- Authenticated mutations, consistent error payloads, security headers, request IDs, access logging, and uptime reporting.
-- Full test suite wired to CI, plus Make/CLI ergonomics for local work.
+See [docs/architecture.md](docs/architecture.md) for request flow and module layout.
 
-See [docs/architecture.md](docs/architecture.md) for module layout and request flow.
+## What’s in the box
 
-## Current Scope
+- FastAPI bootstrap via `create_app()`; versioned routes under `/api/v1`
+- Health and service metadata (DB readiness, process uptime)
+- Task CRUD with SQLite, status filter, pagination, exact summary
+- CORS, configurable via `CORS_ALLOWED_ORIGINS`
+- Management CLI: migrations, seed-demo, config
+- `Makefile` shortcuts; see [docs/operations.md](docs/operations.md)
 
-- FastAPI application bootstrap via a `create_app()` factory for testability
-- Versioned API routes under `/api/v1`
-- Typed response models using Pydantic
-- Health and service metadata endpoints with database readiness and process uptime
-- Task CRUD resource with SQLite persistence, status filtering, pagination, and aggregate summary metrics (single `GROUP BY` query, exact at any scale)
-- Request ID middleware for traceability
-- Baseline security headers on API responses
-- Consistent JSON error responses, with field-level detail on validation errors
-- Centralized runtime settings with configurable CORS origins, database path, and API key
-- GitHub Actions workflows: pytest suite + frontend type-check and production build on every push
-- Project CLI for migrations, demo seeding, reset, and config inspection
-- Makefile shortcuts for common local operations
-- Multi-stage Docker image: bundles the Vite-built React UI into the same Python runtime image and serves it on `/` — one origin, no CORS dance in production
-- Clean package layout for routes, services, and models
-- React + Vite + TypeScript demo UI in `frontend/` with a defensive fetch client (tolerates non-JSON error bodies and HTML edge-case responses)
-
-## Run The Server
-
-Install dependencies:
+## Run the server (local)
 
 ```bash
 pip install -r requirements.txt
-```
-
-Start the development server:
-
-```bash
 uvicorn app.main:app --reload
 ```
 
-Open the interactive API docs:
+Open Swagger at <http://127.0.0.1:8000/docs>.
 
-```text
-http://127.0.0.1:8000/docs
+Without a built frontend, `GET /` returns JSON service metadata. With `frontend/dist/index.html` present (or `FRONTEND_DIST_DIR`), `/` serves the React app. Canonical metadata is always at `GET /api/v1/info`.
+
+## API quick reference
+
+| Method | Path | Auth |
+|--------|------|------|
+| `GET` | `/api/v1/health` | — |
+| `GET` | `/api/v1/info` | — |
+| `GET` / `POST` | `/api/v1/tasks` | `POST` needs `X-API-Key` |
+| `GET` | `/api/v1/tasks?status=&offset=&limit=` | — |
+| `GET` | `/api/v1/tasks/summary` | — |
+| `GET` / `PATCH` / `DELETE` | `/api/v1/tasks/{id}` | writes need `X-API-Key` |
+
+Task list summary:
+
+```json
+{ "total": 3, "todo": 1, "in_progress": 1, "done": 1 }
 ```
 
-## Available Endpoints
+Example: create a task (local default key matches `.env.example`).
 
-Root (`/`) behavior depends on whether a built frontend is present:
-
-- If `frontend/dist/index.html` exists (set via `FRONTEND_DIST_DIR` or default path), the Vite-built React UI is served at `/`. This is what the production Docker image does.
-- Otherwise (dev without a build), `/` returns JSON service metadata so `curl` and tests keep working.
-
-The canonical JSON metadata endpoint is always at `/api/v1/info`, regardless of whether the frontend is mounted.
-
-Health check:
-
-```text
-GET http://127.0.0.1:8000/api/v1/health
+```bash
+curl -X POST http://127.0.0.1:8000/api/v1/tasks \
+  -H "Content-Type: application/json" \
+  -H "X-API-Key: development-api-key" \
+  -d '{"title":"Prepare deployment plan","description":"Document next production steps."}'
 ```
 
-Service info:
-
-```text
-GET http://127.0.0.1:8000/api/v1/info
-```
-
-Task resource:
-
-```text
-POST   http://127.0.0.1:8000/api/v1/tasks  (requires X-API-Key)
-GET    http://127.0.0.1:8000/api/v1/tasks
-GET    http://127.0.0.1:8000/api/v1/tasks?status=in_progress&offset=0&limit=25
-GET    http://127.0.0.1:8000/api/v1/tasks/summary
-GET    http://127.0.0.1:8000/api/v1/tasks/{task_id}
-PATCH  http://127.0.0.1:8000/api/v1/tasks/{task_id}  (requires X-API-Key)
-DELETE http://127.0.0.1:8000/api/v1/tasks/{task_id}  (requires X-API-Key)
-```
-
-Example health response:
+Example health response (local: `APP_ENV` defaults to `development`; the Docker image sets `APP_ENV=production`):
 
 ```json
 {
@@ -113,60 +89,7 @@ Example health response:
 }
 ```
 
-Example task creation:
-
-```bash
-curl -X POST http://127.0.0.1:8000/api/v1/tasks \
-  -H "Content-Type: application/json" \
-  -H "X-API-Key: development-api-key" \
-  -d '{"title":"Prepare deployment plan","description":"Document next production steps."}'
-```
-
-Example task summary response:
-
-```json
-{
-  "total": 3,
-  "todo": 1,
-  "in_progress": 1,
-  "done": 1
-}
-```
-
-Example service info response:
-
-```json
-{
-  "name": "Cloud-Based API Service",
-  "version": "0.1.0",
-  "environment": "development",
-  "docs_url": "/docs",
-  "auth_mode": "api_key",
-  "persistence": "sqlite"
-}
-```
-
-## Authentication
-
-Write operations on `/api/v1/tasks` are protected by a shared API key. Send the `X-API-Key` header with the value from `API_KEY` when creating, updating, or deleting tasks. Read-only task endpoints remain public for now.
-
-## Persistence
-
-Tasks are stored in SQLite through a repository layer. By default, the API uses `cloud_api_service.db` in the project root. For deployments or tests, set `DATABASE_PATH` to point at a different SQLite database file.
-
-## Error Responses
-
-All API errors use a consistent JSON response shape and include a request ID when available:
-
-```json
-{
-  "error": "not_found",
-  "message": "Not Found",
-  "request_id": "test-request-1"
-}
-```
-
-Validation errors (HTTP 422) additionally include a `fields` array so clients can point the user at the exact input that failed, without reading server logs:
+Validation error shape (HTTP 422):
 
 ```json
 {
@@ -179,11 +102,19 @@ Validation errors (HTTP 422) additionally include a `fields` array so clients ca
 }
 ```
 
-Clients can send `X-Request-ID`; otherwise the API generates one and returns it in the response headers. Responses also include baseline browser security headers: `X-Content-Type-Options`, `Referrer-Policy`, `Permissions-Policy`, and a `Content-Security-Policy: frame-ancestors …` directive that blocks clickjacking while still allowing the Hugging Face Spaces catalog page to embed the demo.
+## Authentication
 
-## Run Tests
+Write operations on `/api/v1/tasks` require the `X-API-Key` header (value from `API_KEY`). Read-only task endpoints are public in this demo.
 
-Run the automated endpoint tests:
+## Persistence
+
+Default database file: `cloud_api_service.db` in the project root. Set `DATABASE_PATH` for tests or production mounts.
+
+## Error responses
+
+Errors use a consistent JSON envelope: `error`, `message`, optional `request_id`, and for validation, optional `field`-level `fields`. Clients may send `X-Request-ID`; the API returns it in response headers. Responses also set baseline security headers; framing is controlled with `Content-Security-Policy: frame-ancestors` (see architecture doc) so approved embedders (e.g. Hugging Face) can iframe the app.
+
+## Tests
 
 ```bash
 python -m pytest
@@ -191,40 +122,17 @@ python -m pytest
 make test
 ```
 
-Current coverage (34 tests) includes:
+**35** tests cover: health/info; root behavior with and without `frontend/dist/`; repository and service (including summary beyond 1500 rows); task CRUD and errors; request IDs; security headers; environment parsing. Frontend: `cd frontend && bun run typecheck && bun run build` (also run in CI).
 
-- `GET /api/v1/health` and `GET /api/v1/info`
-- Root (`/`) behavior in both modes: JSON metadata when no frontend is built, and static HTML when `frontend/dist/` is present
-- SQLite task repository persistence and task service behavior
-- Task create/list/filter/paginate/summary/update/delete behavior
-- `GET /tasks/summary` correctness beyond 1500 rows (regression test for a bug where the summary was capped at 1000 in-memory)
-- Standardized 404, validation, and authentication error responses
-- Validation errors include a `fields` array pointing at the failing input
-- Request ID and security response headers
-- Environment parsing for deploy-time settings
-
-## Environment Variables
-
-You can customize app metadata and CORS behavior without changing code. Start by copying the example file:
+## Environment variables
 
 ```bash
 cp .env.example .env
 ```
 
-Then export values in your shell or load them through your deployment platform:
+Key variables: `APP_NAME`, `APP_VERSION`, `APP_ENV` (`development` \| `test` \| `staging` \| `production`), `DATABASE_PATH`, `API_KEY`, `CORS_ALLOWED_ORIGINS`, `LOG_LEVEL`. See `.env.example`.
 
-```bash
-export APP_NAME="Cloud-Based API Service"
-export APP_VERSION="0.1.0"
-export APP_ENV="development"
-export DATABASE_PATH="cloud_api_service.db"
-export API_KEY="development-api-key"
-export CORS_ALLOWED_ORIGINS="http://localhost:3000,http://localhost:5173"
-```
-
-## Local Operations
-
-The project includes a small management CLI and `Makefile` shortcuts for common workflows:
+## Local operations
 
 ```bash
 make migrate
@@ -233,96 +141,62 @@ make run
 make show-config
 ```
 
-Direct CLI usage is also available:
+Or: `python -m app.cli migrate`, `python -m app.cli seed-demo`.
 
-```bash
-python -m app.cli migrate
-python -m app.cli seed-demo
-```
+## Demo frontend
 
-## Demo Frontend
-
-A small React + Vite + TypeScript UI lives in [`frontend/`](frontend/) and talks to the API through Vite's dev proxy, so there is no CORS dance during local development.
-
-![Demo UI screenshot](frontend/screenshot.png)
+![Demo UI](frontend/screenshot.png)
 
 ```bash
 cd frontend
-bun install        # uses the committed bun.lock; npm works as a fallback
+bun install --frozen-lockfile
 bun run dev
 ```
 
-Open <http://localhost:5173>, paste your `API_KEY` (default `development-api-key`) into the API key field, and create / advance / delete tasks against the running backend on `:8000`. See [`frontend/README.md`](frontend/README.md) for the design rationale, package-manager note, and build instructions.
+Open <http://localhost:5173> with the API on port 8000 (Vite proxies `/api`, `/docs`, `/openapi.json`). Default key: `development-api-key`. Details: [frontend/README.md](frontend/README.md).
 
 ## Docker
 
-The `Dockerfile` is multi-stage: the first stage builds the React frontend with Bun, the second stage installs Python dependencies, copies the built `dist/` into the image, and runs as a non-root `appuser`. The final image serves both the API and the UI on port 8000 from a single origin.
+Multi-stage image: Bun builds the UI; Python runtime copies `frontend/dist`, runs as non-root `appuser`, `APP_ENV=production`, `DATABASE_PATH=/app/data/cloud_api_service.db`. Startup: `migrate` → `seed-demo` → `uvicorn`.
 
 ```bash
 docker build -t cloud-api-service .
 docker run -p 8000:8000 cloud-api-service
 ```
 
-Then verify the service:
-
-```bash
-curl http://127.0.0.1:8000/api/v1/health
-open http://127.0.0.1:8000/            # React dashboard
-open http://127.0.0.1:8000/docs        # OpenAPI / Swagger
-```
-
-The container boots by running `app.cli migrate` and then `app.cli seed-demo` before starting `uvicorn`, so a fresh deploy (or a fresh ephemeral volume on free hosting tiers) always boots into a working UI with three demo tasks. Override the SQLite path with `DATABASE_PATH` if you mount a persistent volume.
+Then: <http://127.0.0.1:8000/> (UI), <http://127.0.0.1:8000/docs> (OpenAPI). Mount a volume on `/app/data` if you need SQLite to survive restarts on your host.
 
 ## Deployment
 
-The project is set up to deploy to three hosts without code changes — pick the one that matches your cost/uptime preferences:
+### Hugging Face Spaces (free) — [live demo](https://skvidhani-cloud-api-service.hf.space)
 
-### Hugging Face Spaces (free, always-on, no credit card) — currently live
+The Space uses the **Docker** SDK (`sdk: docker`, `app_port: 8000` in `.github/hf_space_readme.md`).
 
-The `deploy-hf-space` workflow in `.github/workflows/` pushes the repo to the Hugging Face Space on every push to `main`, swapping in an HF-specific README (`.github/hf_space_readme.md`) that carries the required YAML front-matter (`sdk: docker`, `app_port: 8000`).
+1. Create a Docker Space (or use an existing one).
+2. In GitHub: **Settings → Secrets and variables → Actions**, add **`HF_USERNAME`** (Hugging Face username) and **`HF_TOKEN`** (write token from [HF token settings](https://huggingface.co/settings/tokens)).
+3. On push to `main`, `.github/workflows/deploy-hf-space.yml` swaps in the Space README and force-pushes to the Space; Hugging Face rebuilds the image.
 
-One-time setup (already done for this project; documented here so forks can replicate):
+If secrets are unset, the workflow **succeeds but skips** the push—configure secrets or deploy from the Space UI. Live URL pattern: `https://<username>-cloud-api-service.hf.space` (yours may differ; use the table at the top of this file).
 
-1. Create a Hugging Face account and a new **Docker** Space. If the UI defaults to Gradio, change the SDK under *Settings* before the first push (or let the force-push flip it via the README YAML).
-2. Generate a "write" token at <https://huggingface.co/settings/tokens>.
-3. In GitHub repo settings, add two **Actions secrets**: `HF_USERNAME` (your HF account name) and `HF_TOKEN` (the write token).
+### Fly.io (optional)
 
-Push to `main`; the workflow force-pushes the repo into the Space and HF rebuilds the container. Live URL pattern: `https://<HF_USERNAME>-cloud-api-service.hf.space`.
+`fly.toml` is included: health check on `/api/v1/health`, volume at `/app/data` for SQLite. Set a strong `API_KEY` with `flyctl secrets set` for a public app.
 
-The free Spaces filesystem is ephemeral, so SQLite resets on every container restart. The `seed-demo` step in the Dockerfile recreates three demo tasks on each boot, which is the right behavior for a stateless demo.
+### Any Docker host
 
-### Fly.io (pay-as-you-go; ~$0 on `auto_stop_machines = "stop"` with the $5 trial credit)
+`docker run` the image; persist `/app/data` or point `DATABASE_PATH` at your storage.
 
-`fly.toml` is already authored with a 256MB shared-cpu-1x VM in `iad`, a 1GB persistent volume mounted at `/app/data`, and a `/api/v1/health` HTTP check.
+## CI
 
-```bash
-flyctl auth login
-flyctl apps create cloud-api-service           # rename if the slug is taken
-flyctl volumes create cloud_api_service_data --region iad --size 1 -y
-flyctl deploy --remote-only
-```
+On every push/PR to `main`:
 
-Set production secrets (don't rely on the dev default key for a public deploy):
+- **pytest** — full backend suite.
+- **Build frontend** — `bun install --frozen-lockfile`, `bun run typecheck`, `bun run build`.
 
-```bash
-flyctl secrets set API_KEY="$(openssl rand -hex 24)"
-```
+Workflow **Deploy to Hugging Face Space** runs on the same trigger; it only pushes when `HF_USERNAME` and `HF_TOKEN` are set.
 
-### Any other Docker host
+## Docs
 
-The image is vanilla. If your host speaks `docker run`, it speaks this app. Persist `/app/data` for SQLite durability (or use `DATABASE_PATH` to point at a managed database).
-
-## Automated Checks
-
-GitHub Actions runs two parallel jobs on every push and PR to `main`:
-
-- **Run pytest** — installs the Python deps and executes the full backend test suite.
-- **Build frontend** — installs the frozen Bun lockfile, type-checks the TypeScript, and produces a production Vite build. This catches frontend regressions before they can break a deploy.
-
-A separate `Deploy to Hugging Face Space` workflow triggers on the same pushes but no-ops gracefully when the `HF_TOKEN` / `HF_USERNAME` secrets are not configured.
-
-## Development Notes
-
-- [docs/architecture.md](docs/architecture.md) — module layout, request lifecycle, extension points.
-- [docs/development.md](docs/development.md) — local workflow, commit guidelines, current priorities.
-- [docs/operations.md](docs/operations.md) — Make/CLI commands, database lifecycle, deployment notes.
+- [docs/architecture.md](docs/architecture.md) — structure and request lifecycle  
+- [docs/development.md](docs/development.md) — local workflow  
+- [docs/operations.md](docs/operations.md) — Make/CLI, database, deploy notes
