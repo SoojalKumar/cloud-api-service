@@ -93,7 +93,10 @@ class Settings:
     api_key: str = field(default_factory=lambda: _non_empty_env("API_KEY", "development-api-key"))
     log_level: str = field(default_factory=lambda: _validated_log_level(os.getenv("LOG_LEVEL", "INFO")))
     cors_allowed_origins: list[str] = field(
-        default_factory=lambda: _csv_env("CORS_ALLOWED_ORIGINS", "http://localhost:3000")
+        default_factory=lambda: _csv_env(
+            "CORS_ALLOWED_ORIGINS",
+            "http://localhost:3000,http://localhost:5173",
+        )
     )
 
 
