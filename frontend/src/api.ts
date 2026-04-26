@@ -7,9 +7,15 @@ import type {
   TaskUpdate,
 } from "./types";
 
-// In dev, vite.config.ts proxies /api → backend at localhost:8000.
-// In prod, set VITE_API_BASE_URL to the deployed backend's origin.
+// In dev, vite.config.ts proxies /api, /docs and /openapi.json to the
+// backend at localhost:8000, so a relative URL is correct. In prod,
+// set VITE_API_BASE_URL to the deployed backend's origin and every
+// outgoing path (including the footer links) gets prefixed with it.
 const API_BASE_URL = import.meta.env.VITE_API_BASE_URL ?? "";
+
+export function apiBaseUrl(): string {
+  return API_BASE_URL;
+}
 
 const API_KEY_STORAGE_KEY = "cloud-api-service:api-key";
 

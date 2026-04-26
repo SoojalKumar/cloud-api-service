@@ -1,6 +1,6 @@
 import { useCallback, useEffect, useMemo, useState } from "react";
 import type { FormEvent } from "react";
-import { ApiError, api, getStoredApiKey, storeApiKey } from "./api";
+import { ApiError, api, apiBaseUrl, getStoredApiKey, storeApiKey } from "./api";
 import type { Task, TaskStatus, TaskSummary } from "./types";
 import { TASK_STATUSES } from "./types";
 
@@ -248,11 +248,11 @@ export default function App() {
       </section>
 
       <footer className="page__footer muted">
-        <a href="/docs" target="_blank" rel="noreferrer">
+        <a href={`${apiBaseUrl()}/docs`} target="_blank" rel="noreferrer">
           OpenAPI / Swagger
         </a>
         <span>·</span>
-        <a href="/api/v1/health" target="_blank" rel="noreferrer">
+        <a href={`${apiBaseUrl()}/api/v1/health`} target="_blank" rel="noreferrer">
           /health
         </a>
       </footer>
