@@ -6,6 +6,18 @@ __pycache__
 .env
 .venv
 venv
-README.md
 docs
 tests
+
+# Frontend build artifacts and deps - the multi-stage build re-creates these
+# inside the bun stage from the committed lockfile, so shipping them in the
+# build context just bloats uploads and can confuse the cache.
+frontend/node_modules
+frontend/dist
+frontend/.vite
+frontend/screenshot.png
+
+# Local dev artifacts that should never make it into the image.
+*.db
+*.db-journal
+.DS_Store
