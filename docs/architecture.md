@@ -52,7 +52,7 @@ docs/
 1. **Client** calls an endpoint with an optional `X-Request-ID` header.
 2. `RequestIdMiddleware` attaches (or generates) the request ID on `request.state`.
 3. `AccessLogMiddleware` records a timed access-log line and sets `X-Process-Time` on the response.
-4. `SecurityHeadersMiddleware` attaches baseline headers (`X-Content-Type-Options`, `X-Frame-Options`, `Referrer-Policy`, `Permissions-Policy`).
+4. `SecurityHeadersMiddleware` attaches baseline headers (`X-Content-Type-Options`, `Referrer-Policy`, `Permissions-Policy`) plus a `Content-Security-Policy: frame-ancestors …` directive that handles clickjacking protection while still allowing the Hugging Face Spaces catalog to embed the demo.
 5. `CORSMiddleware` applies the configured `CORS_ALLOWED_ORIGINS`.
 6. FastAPI routes protected mutations through `Depends(require_api_key)`.
 7. Route handlers call service methods that validate input and delegate to repositories for persistence.

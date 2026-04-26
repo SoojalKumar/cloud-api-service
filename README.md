@@ -179,7 +179,7 @@ Validation errors (HTTP 422) additionally include a `fields` array so clients ca
 }
 ```
 
-Clients can send `X-Request-ID`; otherwise the API generates one and returns it in the response headers. Responses also include baseline browser security headers such as `X-Content-Type-Options`, `X-Frame-Options`, `Referrer-Policy`, and `Permissions-Policy`.
+Clients can send `X-Request-ID`; otherwise the API generates one and returns it in the response headers. Responses also include baseline browser security headers: `X-Content-Type-Options`, `Referrer-Policy`, `Permissions-Policy`, and a `Content-Security-Policy: frame-ancestors …` directive that blocks clickjacking while still allowing the Hugging Face Spaces catalog page to embed the demo.
 
 ## Run Tests
 

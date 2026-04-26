@@ -37,9 +37,28 @@ def test_security_headers_are_added_to_responses() -> None:
 
     assert response.status_code == 200
     assert response.headers["X-Content-Type-Options"] == "nosniff"
-    assert response.headers["X-Frame-Options"] == "DENY"
     assert response.headers["Referrer-Policy"] == "no-referrer"
     assert response.headers["Permissions-Policy"] == "geolocation=(), microphone=(), camera=()"
+
+
+def test_csp_frame_ancestors_allows_approved_embedders() -> None:
+    """The app is embedded by the Hugging Face Spaces catalog at
+    ``huggingface.co/spaces/...``, so clickjacking protection needs to allow
+    HF while rejecting arbitrary third-party framers. The modern ``frame-
+    ancestors`` directive replaces ``X-Frame-Options: DENY`` so both
+    constraints can coexist in one header."""
+
+    response = client.get("/api/v1/info")
+
+    assert response.status_code == 200
+    csp = response.headers.get("Content-Security-Policy", "")
+    assert "frame-ancestors" in csp
+    assert "'self'" in csp
+    assert "https://huggingface.co" in csp
+    assert "https://*.hf.space" in csp
+    # Legacy header is intentionally dropped so CSP is the single source of
+    # truth for framing policy.
+    assert "X-Frame-Options" not in response.headers
 
 
 def test_process_time_header_is_added_to_responses() -> None:
