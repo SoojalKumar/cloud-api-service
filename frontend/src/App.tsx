@@ -132,24 +132,24 @@ export default function App() {
   return (
     <div className="page">
       <header className="page__header">
-        <div>
+        <div className="page__title">
           <h1>Cloud-Based API Service</h1>
           <p className="muted">
             Demo UI for the FastAPI backend. Reads are public; writes require an API key.
           </p>
         </div>
-        <div className="api-key">
-          <label htmlFor="api-key-input">API key</label>
-          <input
-            id="api-key-input"
-            type="password"
-            placeholder="development-api-key"
-            value={apiKey}
-            onChange={(event) => onSaveApiKey(event.target.value)}
-            autoComplete="off"
-          />
-        </div>
+        <nav className="page__nav muted">
+          <a href={`${apiBaseUrl()}/docs`} target="_blank" rel="noreferrer">
+            OpenAPI
+          </a>
+          <span aria-hidden="true">·</span>
+          <a href={`${apiBaseUrl()}/api/v1/health`} target="_blank" rel="noreferrer">
+            /health
+          </a>
+        </nav>
       </header>
+
+      {summaryCards}
 
       {banner && (
         <div className={`banner banner--${banner.kind}`} role="status">
@@ -160,102 +160,111 @@ export default function App() {
         </div>
       )}
 
-      {summaryCards}
+      <div className="layout">
+        <aside className="layout__side">
+          <section className="card">
+            <h2>API key</h2>
+            <p className="muted card__hint">
+              Stored in <code>localStorage</code>. Required for create / update / delete.
+            </p>
+            <input
+              id="api-key-input"
+              type="password"
+              placeholder="development-api-key"
+              value={apiKey}
+              onChange={(event) => onSaveApiKey(event.target.value)}
+              autoComplete="off"
+            />
+          </section>
 
-      <section className="card">
-        <h2>Create a task</h2>
-        <form className="task-form" onSubmit={onCreate}>
-          <input
-            type="text"
-            placeholder="Title"
-            value={newTitle}
-            onChange={(event) => setNewTitle(event.target.value)}
-            required
-            maxLength={120}
-          />
-          <textarea
-            placeholder="Description (optional)"
-            value={newDescription}
-            onChange={(event) => setNewDescription(event.target.value)}
-            maxLength={500}
-            rows={2}
-          />
-          <button type="submit" disabled={submitting || !newTitle.trim()}>
-            {submitting ? "Creating…" : "Create task"}
-          </button>
-        </form>
-      </section>
+          <section className="card">
+            <h2>Create a task</h2>
+            <form className="task-form" onSubmit={onCreate}>
+              <input
+                type="text"
+                placeholder="Title"
+                value={newTitle}
+                onChange={(event) => setNewTitle(event.target.value)}
+                required
+                maxLength={120}
+              />
+              <textarea
+                placeholder="Description (optional)"
+                value={newDescription}
+                onChange={(event) => setNewDescription(event.target.value)}
+                maxLength={500}
+                rows={3}
+              />
+              <button type="submit" disabled={submitting || !newTitle.trim()}>
+                {submitting ? "Creating…" : "Create task"}
+              </button>
+            </form>
+          </section>
+        </aside>
 
-      <section className="card">
-        <div className="card__header">
-          <h2>Tasks</h2>
-          <div className="filter">
-            <label htmlFor="status-filter">Filter</label>
-            <select
-              id="status-filter"
-              value={filter}
-              onChange={(event) => setFilter(event.target.value as StatusFilter)}
-            >
-              <option value="all">All</option>
-              {TASK_STATUSES.map((value) => (
-                <option key={value} value={value}>
-                  {formatStatus(value)}
-                </option>
-              ))}
-            </select>
-            <button type="button" className="link" onClick={() => void refresh()}>
-              Refresh
-            </button>
-          </div>
-        </div>
+        <main className="layout__main">
+          <section className="card card--main">
+            <div className="card__header">
+              <h2>Tasks</h2>
+              <div className="filter">
+                <label htmlFor="status-filter">Filter</label>
+                <select
+                  id="status-filter"
+                  value={filter}
+                  onChange={(event) => setFilter(event.target.value as StatusFilter)}
+                >
+                  <option value="all">All</option>
+                  {TASK_STATUSES.map((value) => (
+                    <option key={value} value={value}>
+                      {formatStatus(value)}
+                    </option>
+                  ))}
+                </select>
+                <button type="button" className="link" onClick={() => void refresh()}>
+                  Refresh
+                </button>
+              </div>
+            </div>
 
-        {loading ? (
-          <p className="muted">Loading…</p>
-        ) : tasks.length === 0 ? (
-          <p className="muted">No tasks yet. Create one above.</p>
-        ) : (
-          <ul className="task-list">
-            {tasks.map((task) => (
-              <li key={task.id} className={`task-item status-${task.status}`}>
-                <div className="task-item__main">
-                  <div className="task-item__title">{task.title}</div>
-                  {task.description && (
-                    <div className="task-item__description">{task.description}</div>
-                  )}
-                  <div className="task-item__meta">
-                    <span className={`status-pill status-${task.status}`}>
-                      {formatStatus(task.status)}
-                    </span>
-                    <span className="muted">id: {task.id.slice(0, 8)}</span>
-                  </div>
-                </div>
-                <div className="task-item__actions">
-                  <button type="button" onClick={() => void onCycleStatus(task)}>
-                    Advance
-                  </button>
-                  <button
-                    type="button"
-                    className="danger"
-                    onClick={() => void onDelete(task)}
-                  >
-                    Delete
-                  </button>
-                </div>
-              </li>
-            ))}
-          </ul>
-        )}
-      </section>
-
-      <footer className="page__footer muted">
-        <a href={`${apiBaseUrl()}/docs`} target="_blank" rel="noreferrer">
-          OpenAPI / Swagger
-        </a>
-        <span>·</span>
-        <a href={`${apiBaseUrl()}/api/v1/health`} target="_blank" rel="noreferrer">
-          /health
-        </a>
-      </footer>
+            {loading ? (
+              <p className="muted">Loading…</p>
+            ) : tasks.length === 0 ? (
+              <p className="muted">No tasks yet. Create one on the left.</p>
+            ) : (
+              <ul className="task-list">
+                {tasks.map((task) => (
+                  <li key={task.id} className={`task-item status-${task.status}`}>
+                    <div className="task-item__main">
+                      <div className="task-item__title">{task.title}</div>
+                      {task.description && (
+                        <div className="task-item__description">{task.description}</div>
+                      )}
+                      <div className="task-item__meta">
+                        <span className={`status-pill status-${task.status}`}>
+                          {formatStatus(task.status)}
+                        </span>
+                        <span className="muted">id: {task.id.slice(0, 8)}</span>
+                      </div>
+                    </div>
+                    <div className="task-item__actions">
+                      <button type="button" onClick={() => void onCycleStatus(task)}>
+                        Advance
+                      </button>
+                      <button
+                        type="button"
+                        className="danger"
+                        onClick={() => void onDelete(task)}
+                      >
+                        Delete
+                      </button>
+                    </div>
+                  </li>
+                ))}
+              </ul>
+            )}
+          </section>
+        </main>
+      </div>
     </div>
   );
 }
