@@ -1,0 +1,64 @@
+name: Deploy to Hugging Face Space
+
+# Auto-syncs the repo to the matching Hugging Face Space on every push to main.
+# Requires two repository secrets (Settings > Secrets and variables > Actions):
+#   - HF_USERNAME: your Hugging Face account name (used in the Space URL)
+#   - HF_TOKEN:    a "write" token from https://huggingface.co/settings/tokens
+# If either secret is missing the workflow no-ops so the rest of CI stays green.
+
+on:
+  push:
+    branches: [main]
+  workflow_dispatch:
+
+concurrency:
+  group: hf-space-sync
+  cancel-in-progress: true
+
+jobs:
+  sync:
+    name: Sync to huggingface.co/spaces
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Verify deploy secrets
+        id: secrets
+        env:
+          HF_TOKEN: ${{ secrets.HF_TOKEN }}
+          HF_USERNAME: ${{ secrets.HF_USERNAME }}
+        run: |
+          if [ -z "${HF_TOKEN}" ] || [ -z "${HF_USERNAME}" ]; then
+            echo "HF_TOKEN or HF_USERNAME not configured; skipping sync."
+            echo "skip=true" >> "$GITHUB_OUTPUT"
+          else
+            echo "skip=false" >> "$GITHUB_OUTPUT"
+          fi
+
+      - name: Check out repository
+        if: steps.secrets.outputs.skip == 'false'
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Configure Git
+        if: steps.secrets.outputs.skip == 'false'
+        run: |
+          git config --global user.email "actions@github.com"
+          git config --global user.name "GitHub Actions"
+
+      - name: Swap README for the HF Space variant
+        if: steps.secrets.outputs.skip == 'false'
+        run: |
+          cp .github/hf_space_readme.md README.md
+          git add README.md
+          git commit -m "chore: sync ${GITHUB_SHA::7} to HF Space" --allow-empty
+
+      - name: Force-push to HF Space
+        if: steps.secrets.outputs.skip == 'false'
+        env:
+          HF_TOKEN: ${{ secrets.HF_TOKEN }}
+          HF_USERNAME: ${{ secrets.HF_USERNAME }}
+        run: |
+          git push --force \
+            "https://${HF_USERNAME}:${HF_TOKEN}@huggingface.co/spaces/${HF_USERNAME}/cloud-api-service" \
+            HEAD:main
