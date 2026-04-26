@@ -65,6 +65,27 @@ class SQLiteTaskRepository:
                 ).fetchall()
         return [self._to_task(row) for row in rows]
 
+    def status_counts(self) -> dict[str, int]:
+        """Return per-status totals using a single grouped aggregate.
+
+        Computing the summary from a paginated ``list()`` capped at 1000 rows
+        was silently wrong as soon as the table grew past the cap. SQL keeps
+        this exact at any scale.
+        """
+
+        with self._lock:
+            rows = self._connection.execute(
+                """
+                SELECT status, COUNT(*) AS count
+                FROM tasks
+                GROUP BY status
+                """,
+            ).fetchall()
+        counts: dict[str, int] = {status.value: 0 for status in TaskStatus}
+        for row in rows:
+            counts[row["status"]] = row["count"]
+        return counts
+
     def get(self, task_id: str) -> Optional[TaskResponse]:
         with self._lock:
             row = self._connection.execute(

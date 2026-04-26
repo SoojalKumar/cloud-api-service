@@ -27,3 +27,25 @@ def test_task_service_updates_and_summarizes_status(tmp_path) -> None:
     assert summary.total == 2
     assert summary.todo == 1
     assert summary.done == 1
+
+
+def test_summary_is_exact_beyond_pagination_cap(tmp_path) -> None:
+    """Regression for the previous in-memory summary that capped at 1000 rows.
+
+    The earlier implementation called ``list(limit=1000)`` and counted in
+    Python, so any table with more than 1000 rows reported a wrong total
+    while ``GET /tasks`` continued to paginate correctly. The fix routes
+    summary through a SQL ``GROUP BY``; this test exercises a row count
+    well above that historical cap.
+    """
+
+    service = TaskService(SQLiteTaskRepository(str(tmp_path / "summary.db")))
+    for index in range(1500):
+        service.create_task(TaskCreate(title=f"Task {index}"))
+
+    summary = service.get_summary()
+
+    assert summary.total == 1500
+    assert summary.todo == 1500
+    assert summary.in_progress == 0
+    assert summary.done == 0

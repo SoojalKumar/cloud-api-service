@@ -39,12 +39,12 @@ class TaskService:
         return self._repository.list(status=status, offset=offset, limit=limit)
 
     def get_summary(self) -> TaskSummaryResponse:
-        tasks = self._repository.list(offset=0, limit=1000)
+        counts = self._repository.status_counts()
         return TaskSummaryResponse(
-            total=len(tasks),
-            todo=sum(task.status == TaskStatus.TODO for task in tasks),
-            in_progress=sum(task.status == TaskStatus.IN_PROGRESS for task in tasks),
-            done=sum(task.status == TaskStatus.DONE for task in tasks),
+            total=sum(counts.values()),
+            todo=counts.get(TaskStatus.TODO.value, 0),
+            in_progress=counts.get(TaskStatus.IN_PROGRESS.value, 0),
+            done=counts.get(TaskStatus.DONE.value, 0),
         )
 
     def get_task(self, task_id: str) -> TaskResponse:
